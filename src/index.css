@@ -11,3 +11,56 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.mainView {
+  background-color: #282c34;
+  color: white;
+  height: 100vh;
+}
+
+.compose {
+ padding: 7px 10px;
+ display: flex;
+ align-items: center;
+ background: #282c34;
+ border-top: 1px solid #47484A;
+ position: fixed;
+ width: 100vw;
+ bottom: 0px;
+ color: white;
+}
+
+.send {
+  background: transparent;
+  border: none;
+  color: inherit;
+  border-radius: 50%;
+  outline: none;
+  transition: 0.7s;
+  margin-right: 2vw;
+}
+
+.send:hover{
+  background: #1C1D20;
+}
+
+.center {
+  margin-left: 15%;
+}
+
+.input {
+  flex: 4;
+  border: none;
+  font-size: 14px;
+  height: 30px;
+  background: none;
+  overflow: auto;
+  color: white;
+  padding-left: 1em;
+  padding-right: 1em;
+  outline: none;
+}
+
+.input::placeholder {
+  opacity: 0.7;
+}
