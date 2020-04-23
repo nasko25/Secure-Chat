@@ -15,6 +15,10 @@ class MainView extends React.Component {
   };
 }
 
+/* TODO move the state to the parent MainView to be able to pass a addMessageToView() function
+ * to the send button.
+ * OR use react-redux to store the state of MessagesView ?
+*/
 class MessagesView extends React.Component {
   constructor(props) {
     super(props);
@@ -50,7 +54,6 @@ class MessagesView extends React.Component {
 
     // list of messages to return
     var messages = [];
-    console.log(messages)
     for (var message in messagesJson) {
       messages.push(
         <Message
@@ -121,6 +124,7 @@ class ComposeView extends React.Component {
 }
 
 class SendButton extends React.Component {
+  // TODO https://stackoverflow.com/questions/53597482/setstate-outside-component
   render() {
     return (
       <button className = "send">
