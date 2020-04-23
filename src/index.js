@@ -16,6 +16,12 @@ class MainView extends React.Component {
 }
 
 class MessagesView extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      messages: []
+    }
+  }
 
   renderAllMessages() {
     // TODO server does not keep a list of messages though
@@ -43,7 +49,8 @@ class MessagesView extends React.Component {
     };
 
 
-    var messages = []
+    const { messages } = this.state;
+    console.log(messages)
     for (var message in messagesJson) {
       messages.push(
         <Message
@@ -54,6 +61,24 @@ class MessagesView extends React.Component {
       );
     }
     return messages;
+  }
+
+  componentDidMount() {
+    // TODO ajax - https://reactjs.org/docs/faq-ajax.html
+    var newMessagesList = [];
+    newMessagesList.push(<Message
+      key = { 5 }
+      message = "test message"
+      mine = { true }
+    />);
+
+    setTimeout(
+        function() {
+            this.setState({messages: [this.state.messages, newMessagesList]});
+        }
+        .bind(this),
+        3000
+    );
   }
 
   render() {
