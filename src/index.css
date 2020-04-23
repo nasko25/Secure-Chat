@@ -85,6 +85,7 @@ code {
   width: fit-content;
   max-width: 70%;
   margin: 1px 15px;
+  overflow-wrap: break-word
 }
 
 .mine {
