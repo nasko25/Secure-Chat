@@ -16,28 +16,34 @@ class MainView extends React.Component {
 }
 
 class MessagesView extends React.Component {
-  // TODO server does not keep a list of messages though
-  messagesJson = {
-    1: {
-      message: "This is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a message",
-      mine: true,
-      time: new Date(Date.UTC(2010, 0, 1, 12, 12, 12))
-    },
-    2: {
-      message: "hey",
-      mine: false,
-      time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
-    }
-  }
 
   renderAllMessages() {
-    // TODO return a list of messages
-    return (
-      <Message
-        message = { this.messagesJson[1].message }
-        mine = { this.messagesJson[1].mine }
-      />
-    );
+    // TODO server does not keep a list of messages though
+    var messagesJson = {
+      1: {
+        message: "This is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a message",
+        mine: true,
+        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 12))
+      },
+      2: {
+        message: "hey",
+        mine: false,
+        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
+      }
+    };
+
+
+    var messages = []
+    for (var message in messagesJson) {
+      messages.push(
+        <Message
+          key = {message}
+          message = { messagesJson[message].message }
+          mine = { messagesJson[message].mine }
+        />
+      );
+    }
+    return messages;
   }
 
   render() {
