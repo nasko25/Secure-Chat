@@ -71,6 +71,11 @@ code {
   height: 100%;
 }
 
+.messageContiner {
+  width: 100%;
+  display: inline-block;
+}
+
 .message {
   background: black;
   color: white;
@@ -79,7 +84,7 @@ code {
   font-size: 14px;
   width: fit-content;
   max-width: 70%;
-  margin: 1px 0px;
+  margin: 1px 15px;
 }
 
 .mine {

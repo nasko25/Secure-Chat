@@ -29,6 +29,16 @@ class MessagesView extends React.Component {
         message: "hey",
         mine: false,
         time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
+      },
+      3: {
+        message: "message",
+        mine: false,
+        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
+      },
+      4: {
+        message: "nice",
+        mine: true,
+        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
       }
     };
 
@@ -37,7 +47,7 @@ class MessagesView extends React.Component {
     for (var message in messagesJson) {
       messages.push(
         <Message
-          key = {message}
+          key = { message }
           message = { messagesJson[message].message }
           mine = { messagesJson[message].mine }
         />
@@ -58,8 +68,10 @@ class MessagesView extends React.Component {
 function Message(props) {
     // TODO also css classes for start and end sequence of messages?
     return (
-      <div className = {`message${ props.mine ? ' mine' : '' }`}>
-        { props.message }
+      <div className = "messageContiner">
+        <div className = {`message${ props.mine ? ' mine' : '' }`}>
+          { props.message }
+        </div>
       </div>
     );
 }
