@@ -5,19 +5,40 @@ import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 class MainView extends React.Component {
+  /*
+    The child component MessagesView will get access to this function, so that the child component can
+    give access to its addMessageToView() method to the parent MainView.
+    This access will later be retrieved from the state of the MainView and given to the other child of MainView,
+    namely ComposeView, so that the ComposeView can directly call the MessagesView's method addMessageToView().
+  */
+  addFunctionToState(func) {
+    this.addMessageToView = func;
+  }
+
+  /*
+    It is used to get access to the addMessageToView() method that is originally in the MessagesView component.
+  */
+  getFunctionFromState() {
+    return this.addMessageToView;
+  }
+
   render() {
     return (
       <div className = "mainView">
-        <MessagesView/>
-        <ComposeView/>
+        <MessagesView setParentReference = { this.addFunctionToState.bind(this) }/>
+        <ComposeView getFunctionFromState = { this.getFunctionFromState.bind(this) }/>
       </div>
     );
   };
 }
 
-/* TODO move the state to the parent MainView to be able to pass a addMessageToView() function
+/*
+ * move the state to the parent MainView to be able to pass a addMessageToView() function
  * to the send button.
  * OR use react-redux to store the state of MessagesView ?
+ * OR give a reference to the addMessageToView() method inside of the MessagesView component
+ * to the parent component so that the parent can give this reference to the other child component ?
+  I went with the last approach. Might need to refactor later.
 */
 class MessagesView extends React.Component {
   constructor(props) {
@@ -46,6 +67,13 @@ class MessagesView extends React.Component {
         }
       }
     };
+
+    props.setParentReference(this.addMessageToView);
+  }
+
+  addMessageToView() {
+    // TODO
+    console.log("add message to view");
   }
 
   renderAllMessages() {
@@ -104,12 +132,10 @@ function Message(props) {
     );
 }
 
-function addMessageToView() {
-  // TODO
-}
-
 class ComposeView extends React.Component {
   render() {
+    var addMessageToView = this.props.getFunctionFromState();
+    addMessageToView();
     return (
       <div className = "compose">
         <input
