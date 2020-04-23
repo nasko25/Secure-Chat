@@ -19,37 +19,37 @@ class MessagesView extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      messages: []
-    }
+      messagesJson: {
+        1: {
+          message: "This is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a message",
+          mine: true,
+          time: new Date(Date.UTC(2010, 0, 1, 12, 12, 12))
+        },
+        2: {
+          message: "hey",
+          mine: false,
+          time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
+        },
+        3: {
+          message: "message",
+          mine: false,
+          time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
+        },
+        4: {
+          message: "nice",
+          mine: true,
+          time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
+        }
+      }
+    };
   }
 
   renderAllMessages() {
     // TODO server does not keep a list of messages though
-    var messagesJson = {
-      1: {
-        message: "This is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a message",
-        mine: true,
-        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 12))
-      },
-      2: {
-        message: "hey",
-        mine: false,
-        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
-      },
-      3: {
-        message: "message",
-        mine: false,
-        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
-      },
-      4: {
-        message: "nice",
-        mine: true,
-        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
-      }
-    };
+    var { messagesJson } = this.state;
 
-
-    const { messages } = this.state;
+    // list of messages to return
+    var messages = [];
     console.log(messages)
     for (var message in messagesJson) {
       messages.push(
@@ -65,16 +65,16 @@ class MessagesView extends React.Component {
 
   componentDidMount() {
     // TODO ajax - https://reactjs.org/docs/faq-ajax.html
-    var newMessagesList = [];
-    newMessagesList.push(<Message
-      key = { 5 }
-      message = "test message"
-      mine = { true }
-    />);
-
+    var newMessage = {
+      5: {
+        message: "my new message",
+        mine: true,
+        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
+      }
+    };
     setTimeout(
         function() {
-            this.setState({messages: [this.state.messages, newMessagesList]});
+            this.setState({messagesJson: {...this.state.messagesJson, ...newMessage}});
         }
         .bind(this),
         3000
