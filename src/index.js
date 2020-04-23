@@ -8,19 +8,58 @@ class MainView extends React.Component {
   render() {
     return (
       <div className = "mainView">
-        <MessageView/>
+        <MessagesView/>
         <ComposeView/>
       </div>
     );
   };
 }
 
-class MessageView extends React.Component {
+class MessagesView extends React.Component {
+  // TODO server does not keep a list of messages though
+  messagesJson = {
+    1: {
+      message: "This is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a message",
+      mine: true,
+      time: new Date(Date.UTC(2010, 0, 1, 12, 12, 12))
+    },
+    2: {
+      message: "hey",
+      mine: false,
+      time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
+    }
+  }
+
+  renderAllMessages() {
+    // TODO return a list of messages
+    return (
+      <Message
+        message = { this.messagesJson[1].message }
+        mine = { this.messagesJson[1].mine }
+      />
+    );
+  }
+
   render() {
     return (
-      <div> This is the messages view </div>
+      <div className = "messagesView">
+        { this.renderAllMessages() }
+      </div>
     );
   };
+}
+
+function Message(props) {
+    // TODO also css classes for start and end sequence of messages?
+    return (
+      <div className = {`message${ props.mine ? ' mine' : '' }`}>
+        { props.message }
+      </div>
+    );
+}
+
+function addMessageToView() {
+  // TODO
 }
 
 class ComposeView extends React.Component {

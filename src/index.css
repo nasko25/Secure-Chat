@@ -64,3 +64,26 @@ code {
 .input::placeholder {
   opacity: 0.7;
 }
+
+/* ============================================================================= */
+.messagesView {
+  overflow: auto;
+  height: 100%;
+}
+
+.message {
+  background: black;
+  color: white;
+  border-radius: 20px;
+  padding: 10px 15px;
+  font-size: 14px;
+  width: fit-content;
+  max-width: 70%;
+  margin: 1px 0px;
+}
+
+.mine {
+  background: #007aff;
+  color: inherit;
+  float: right;
+}
