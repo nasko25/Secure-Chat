@@ -71,9 +71,9 @@ class MessagesView extends React.Component {
     props.setParentReference(this.addMessageToView);
   }
 
-  addMessageToView() {
+  addMessageToView(messageToAdd) {
     // TODO
-    console.log("add message to view");
+    console.log(messageToAdd.message);
   }
 
   renderAllMessages() {
@@ -133,27 +133,45 @@ function Message(props) {
 }
 
 class ComposeView extends React.Component {
-  render() {
+  sendMessage = (event) => {
     var addMessageToView = this.props.getFunctionFromState();
-    addMessageToView();
+    var messageToAdd = {
+      message: "hello from the compose view",
+      mine: true,
+      time: new Date()
+    };
+
+    if(event.key === "Enter" || event.type === "click") {
+      addMessageToView(messageToAdd);
+    }
+  }
+
+  render() {
+
     return (
       <div className = "compose">
         <input
          type="text"
          className="input"
          placeholder="Message"
+         onKeyDown={this.sendMessage}
        />
-        <SendButton />
+        <SendButton sendMessage = {this.sendMessage}/>
       </div>
     );
   };
 }
 
 class SendButton extends React.Component {
+  constructor(props) {
+    super(props);
+    this.sendMessage = props.sendMessage;
+  }
+
   // TODO https://stackoverflow.com/questions/53597482/setstate-outside-component
   render() {
     return (
-      <button className = "send">
+      <button className = "send" onClick = {this.sendMessage}>
         <i className="material-icons center">send</i>
       </button>
     );
