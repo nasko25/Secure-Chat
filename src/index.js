@@ -74,6 +74,10 @@ class MessagesView extends React.Component {
   addMessageToView(messageToAdd) {
     // TODO
     console.log(messageToAdd.message);
+    var event = new CustomEvent("newMessage", { detail: { messageToAdd: messageToAdd }});
+
+    // trigger the event
+    document.dispatchEvent(event);
   }
 
   renderAllMessages() {
@@ -103,6 +107,15 @@ class MessagesView extends React.Component {
         time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
       }
     };
+
+    var handler = (event) => {
+        console.log("custom event", event.detail);
+        // TODO messageToAdd's id must be unique and follow the order in the this.state.messagesJson object
+        this.setState({messagesJson: {...this.state.messagesJson, ...event.detail.messageToAdd}});
+    };
+
+    document.addEventListener("newMessage", handler);
+
     setTimeout(
         function() {
             this.setState({messagesJson: {...this.state.messagesJson, ...newMessage}});
@@ -136,9 +149,11 @@ class ComposeView extends React.Component {
   sendMessage = (event) => {
     var addMessageToView = this.props.getFunctionFromState();
     var messageToAdd = {
-      message: "hello from the compose view",
-      mine: true,
-      time: new Date()
+      6: {
+        message: "hello from the compose view",
+        mine: true,
+        time: new Date()
+      }
     };
 
     if(event.key === "Enter" || event.type === "click") {
