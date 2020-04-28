@@ -173,9 +173,15 @@ class ComposeView extends React.Component {
       addMessageToView(messageToAdd);
       // clear the input
       document.getElementsByClassName("input")[0].value = "";
-      // TODO make it an id?
-      // var scrollView = document.getElementsByClassName("messagesView")[0];
-      // scrollView.scrollTop = scrollView.scrollHeight;
+
+      // auto scroll when a new message is added to the view
+      // TODO don't scroll if user has scrolled up
+      // TODO this looks like a hacky solution ?
+      setTimeout(function() {
+        // TODO make it an id?
+        var scrollView = document.getElementsByClassName("messagesView")[0];
+        scrollView.scrollTop = scrollView.scrollHeight;
+      }, 100);
     }
   }
 
