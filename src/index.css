@@ -68,7 +68,7 @@ code {
 /* ============================================================================= */
 .messagesView {
   overflow: auto;
-  height: 100%;
+  height: calc(100vh - 47px);
 }
 
 .messageContiner {

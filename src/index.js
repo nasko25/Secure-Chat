@@ -72,8 +72,6 @@ class MessagesView extends React.Component {
   }
 
   addMessageToView(messageToAdd) {
-    // TODO
-    console.log(messageToAdd.message);
     var event = new CustomEvent("newMessage", { detail: { messageToAdd: messageToAdd }});
 
     // trigger the event
@@ -109,8 +107,6 @@ class MessagesView extends React.Component {
     };
 
     var handler = (event) => {
-        console.log("custom event", event.detail);
-
         var messageToAdd = event.detail.messageToAdd;
         // messageToAdd's id must be unique and follow the order of the this.state.messagesJson object's keys
                       // get the key of the object with the highest key
@@ -125,6 +121,7 @@ class MessagesView extends React.Component {
         this.setState({messagesJson: {...this.state.messagesJson, ...messageToAdd}});
     };
 
+    // is this allowed when using react?
     document.addEventListener("newMessage", handler);
 
     setTimeout(
@@ -159,9 +156,14 @@ function Message(props) {
 class ComposeView extends React.Component {
   sendMessage = (event) => {
     var addMessageToView = this.props.getFunctionFromState();
+    // TODO make the "input" class an id?
+    var message = document.getElementsByClassName("input")[0].value;
+    if (message === null || message === "") {
+      return;
+    }
     var messageToAdd = {
       "messageId": {
-        message: "hello from the compose view",
+        message: message,
         mine: true,
         time: new Date()
       }
@@ -169,6 +171,11 @@ class ComposeView extends React.Component {
 
     if(event.key === "Enter" || event.type === "click") {
       addMessageToView(messageToAdd);
+      // clear the input
+      document.getElementsByClassName("input")[0].value = "";
+      // TODO make it an id?
+      // var scrollView = document.getElementsByClassName("messagesView")[0];
+      // scrollView.scrollTop = scrollView.scrollHeight;
     }
   }
 
