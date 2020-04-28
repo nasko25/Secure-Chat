@@ -110,8 +110,19 @@ class MessagesView extends React.Component {
 
     var handler = (event) => {
         console.log("custom event", event.detail);
-        // TODO messageToAdd's id must be unique and follow the order in the this.state.messagesJson object
-        this.setState({messagesJson: {...this.state.messagesJson, ...event.detail.messageToAdd}});
+
+        var messageToAdd = event.detail.messageToAdd;
+        // messageToAdd's id must be unique and follow the order of the this.state.messagesJson object's keys
+                      // get the key of the object with the highest key
+        var nextId = parseInt(Object.keys(this.state.messagesJson).reduce((a, b) => messageToAdd[a] > messageToAdd[b] ? a : b)) + 1;   // TODO is it unique?
+
+        // change the old "messageId" key to be nextId, so that the id is a unique number and can be displayed
+        if ("messageId" !== nextId) {
+            Object.defineProperty(messageToAdd, nextId,
+                Object.getOwnPropertyDescriptor(messageToAdd, "messageId"));
+            delete messageToAdd["messageId"];
+        }
+        this.setState({messagesJson: {...this.state.messagesJson, ...messageToAdd}});
     };
 
     document.addEventListener("newMessage", handler);
@@ -149,7 +160,7 @@ class ComposeView extends React.Component {
   sendMessage = (event) => {
     var addMessageToView = this.props.getFunctionFromState();
     var messageToAdd = {
-      6: {
+      "messageId": {
         message: "hello from the compose view",
         mine: true,
         time: new Date()
