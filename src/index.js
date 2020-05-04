@@ -2,8 +2,17 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 // import App from './App';
+import { Route, IndexRoute } from 'react-router';
 import * as serviceWorker from './serviceWorker';
 import MainView from "./components/MainView.js"
+
+class InitilizeConnection extends React.Component {
+  render() {
+    return (
+      <p> Index page. </p>
+    );
+  }
+}
 
 // TODO unit tests?
 // TODO make a css file for each component instead of having one index.css?
@@ -17,7 +26,8 @@ import MainView from "./components/MainView.js"
 // );
 
 ReactDOM.render(
-  <MainView />,
+  // <MainView />,
+  <InitilizeConnection />,
   document.getElementById('root')
 );
 
