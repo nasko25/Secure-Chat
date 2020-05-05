@@ -6,6 +6,7 @@ import {
   Link
 } from "react-router-dom";
 import MainView from "./MainView.js"
+import './index.css'
 
 
 // TODO https://reacttraining.com/react-router/web/example/query-parameters     query parameters (chat id will be a parameter)

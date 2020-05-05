@@ -1,7 +1,7 @@
 import React from 'react';
 import MessagesView from "./Messages.js"
 import ComposeView from "./ComposeView.js"
-import "../index.css"
+import "./index.css"
 
 export default class MainView extends React.Component {
   /*
@@ -19,6 +19,20 @@ export default class MainView extends React.Component {
   */
   getFunctionFromState() {
     return this.addMessageToView;
+  }
+
+  componentDidMount() {
+    // TODO not working for 'back' button
+    // TODO is it even useful ?
+    // https://github.com/zeit/next.js/issues/2694
+
+    // Enable navigation prompt
+    window.onbeforeunload = function() {
+      return true;
+    };
+
+    // Remove navigation prompt
+    // window.onbeforeunload = null;
   }
 
   render() {
