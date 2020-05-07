@@ -74,7 +74,7 @@ export default class MessagesView extends React.Component {
       }
     };
 
-    var handler = (event) => {
+    this.handler = (event) => {
         var messageToAdd = event.detail.messageToAdd;
         // messageToAdd's id must be unique and follow the order of the this.state.messagesJson object's keys
                       // get the key of the object with the highest key
@@ -90,9 +90,9 @@ export default class MessagesView extends React.Component {
     };
 
     // is this allowed when using react?
-    document.addEventListener("newMessage", handler);
+    document.addEventListener("newMessage", this.handler);
 
-    setTimeout(
+    this.timeout = setTimeout(
         function() {
             this.setState({messagesJson: {...this.state.messagesJson, ...newMessage}});
         }
@@ -108,6 +108,12 @@ export default class MessagesView extends React.Component {
       </div>
     );
   };
+
+  componentWillUnmount() {
+      document.removeEventListener("newMessage", this.handler);
+
+      clearTimeout(this.timeout);
+  }
 }
 
 function Message(props) {
