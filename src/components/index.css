@@ -93,3 +93,25 @@ code {
   color: inherit;
   float: right;
 }
+
+/* ================================================================================ */
+.indexPage {
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  width: 100vw;
+}
+
+.box {
+  margin: 0 auto;
+  margin-top: 2em;
+  width: 20%;
+  background: black;
+  height: 20%;
+}
+
+.indexParagraph {
+  text-align: center;
+  padding: 0;
+  margin: 0;
+}

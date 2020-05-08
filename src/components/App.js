@@ -27,9 +27,12 @@ export default function App() {
 
 function InitilizeConnection() {
   return (
-    <div>
-      <p >Index page. </p>
-      <Link to = "chat"> Link </Link>
+    <div className = "indexPage mainView">
+      <div className="box">
+        <p className = "indexParagraph"> Index page.
+        <Link to = "chat"> Link </Link>
+        </p>
+      </div>
     </div>
   );
 }
