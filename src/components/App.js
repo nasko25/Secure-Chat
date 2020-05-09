@@ -29,9 +29,12 @@ function InitilizeConnection() {
   return (
     <div className = "indexPage mainView">
       <div className="box">
-        <p className = "indexParagraph"> Index page.
-        <Link to = "chat"> Link </Link>
-        </p>
+        <input type="input" className="secretField" placeholder="Secret" name="secret" id='secret'/>
+        <label htmlFor="secret" className="secretLabel">Secret</label>
+
+        <div className="readyBtn">
+          <Link className="readyLink" to = "chat"> Ready </Link>
+        </div>
       </div>
     </div>
   );

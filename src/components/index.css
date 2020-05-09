@@ -106,12 +106,92 @@ code {
   margin: 0 auto;
   margin-top: 2em;
   width: 20%;
-  background: black;
+  background: #16181d;
   height: 20%;
+  min-height: 150px;
+  min-width: 200px;
 }
 
-.indexParagraph {
+/*.indexParagraph {
   text-align: center;
   padding: 0;
   margin: 0;
+}*/
+
+.readyBtn {
+  text-align: center;
+  padding-top: 1em;
 }
+
+.readyLink {
+  color: white;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: #282c34;
+  /*padding: 10px;
+  border: 4px solid #282c34;*/
+  padding: 14px;
+  display: inline-block;
+  transition: all 0.4s ease 0s;
+}
+
+.readyLink:hover {
+  color: #282c34;
+  background: #f6b93b;
+  border-color: #f6b93b;
+  transition: all 0.4s ease 0s;
+}
+
+/* ============== input-a-secret field =======================================*/
+.secretField {
+   font-family: inherit;
+   width: 90%;
+   border: 0;
+   border-bottom: 2px solid #9b9b9b;
+   outline: 0;
+   font-size: 1.3rem;
+   color: #fff;
+   padding: 14px 0;
+   margin-left: 10px;
+   background: transparent;
+   transition: border-color 0.2s;
+}
+ .secretField::placeholder {
+   color: transparent;
+}
+ .secretField:placeholder-shown ~ .secretLabel {
+   font-size: 1.3rem;
+   cursor: text;
+   top: 40px;
+}
+ .secretLabel {
+   position: absolute;
+   top: 0;
+   display: block;
+   transition: 0.2s;
+   font-size: 1rem;
+   margin-left: 10px;
+   color: #9b9b9b;
+}
+ .secretField:focus {
+   padding-bottom: 13px;
+   font-weight: 700;
+   border-width: 3px;
+   border-image: linear-gradient(to right, #11998e, #38ef7d);
+   border-image-slice: 1;
+}
+ .secretField:focus ~ .secretLabel {
+   position: absolute;
+   top: 0;
+   display: block;
+   transition: 0.2s;
+   font-size: 1rem;
+   color: #11998e;
+   font-weight: 700;
+}
+/* reset input */
+ .secretField:required, .secretField:invalid {
+   box-shadow: none;
+}
+
+/* ================================================================= */
