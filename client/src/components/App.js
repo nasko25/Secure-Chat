@@ -8,6 +8,7 @@ import {
 } from "react-router-dom";
 import MainView from "./MainView.js"
 import './index.css'
+import forge from "node-forge"
 
 
 // TODO https://reacttraining.com/react-router/web/example/query-parameters     query parameters (chat id will be a parameter)
@@ -46,6 +47,22 @@ class InitilizeConnection extends React.Component {
     this.callApi()
       .then(res => this.setState({ data: res.api }))
       .catch(err => console.log(err));
+
+    var rsa = forge.pki.rsa;
+
+    rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
+
+      // some quick api tests
+      let a = keypair.publicKey.encrypt("asdf")
+      let b = forge.pki.publicKeyFromPem(forge.pki.publicKeyToPem(keypair.publicKey)).encrypt("asdf")
+      console.log(keypair.privateKey.decrypt(a));
+      console.log(keypair.privateKey.decrypt(b));
+
+      this.setState({ priv: keypair.privateKey});
+      this.setState({ pub: forge.pki.publicKeyToPem(keypair.publicKey)});
+    });
+
+    // this.setState({dh: crypto.createDiffieHellman(1024)});
   }
 
   callApi = async () => {
@@ -73,6 +90,7 @@ class InitilizeConnection extends React.Component {
         </div>
 
         <p> Data from the api: {this.state.data} </p>
+        <p> Testing rsa: {this.state.pub} </p>
       </div>
     );
   }
