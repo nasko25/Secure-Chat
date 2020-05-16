@@ -53,16 +53,7 @@ class InitilizeConnection extends React.Component {
 
     if (token) {
       // there is already a token set
-      // TODO verify that it is a real token
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: token })
-        };
-
-      fetch('/verify_token', requestOptions)
-          .then(response => response.json())
-          .then(data => console.log(data));
+      this.verifyToken(token).then(res => console.log(res)).catch(err => console.log(err));
 
     }
     else {
@@ -89,6 +80,20 @@ class InitilizeConnection extends React.Component {
     });
 
     // this.setState({dh: crypto.createDiffieHellman(1024)});
+  }
+
+  verifyToken = async (token) => {
+    // TODO verify that it is a real token
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' , 'Connection': 'close'},
+      body: JSON.stringify({ token: token })
+    };
+
+    const response = await fetch('/verify_token', requestOptions);
+    const body = await response.json();
+
+    return body;
   }
 
   callApi = async () => {

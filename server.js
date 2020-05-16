@@ -13,4 +13,5 @@ app.get("/api", (req, res) => {
 
 app.post("/verify_token", (req, res) => {
 	console.log(req.body);
+	res.end();
 });
