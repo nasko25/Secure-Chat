@@ -57,12 +57,16 @@ class InitilizeConnection extends React.Component {
 
     }
     else {
-      let newToken = "random_or_get_from_server"
-      this.props.history.push({
-        pathname: '/',
-        search: `?token=${newToken}`,
-        // state: {token: "do i need a state?"}
-      });
+      this.getToken()
+        .then(res => {
+          let newToken = res;
+          this.props.history.push({
+            pathname: '/',
+            search: `?token=${newToken}`,
+            // state: {token: "do i need a state?"}
+          });
+        })
+        .catch(err => console.log(err));
     }
 
     var rsa = forge.pki.rsa;
@@ -93,7 +97,23 @@ class InitilizeConnection extends React.Component {
     const response = await fetch('/verify_token', requestOptions);
     const body = await response.json();
 
+    if (response.status !== 200) {
+      throw Error(body.message);
+    }
+
     return body;
+  }
+
+  // TODO code duplication!
+  getToken = async () => {
+    const response = await fetch("/generate_token");
+    const body = await response.json();
+
+    if (response.status !== 200) {
+      throw Error(body.message);
+    }
+
+    return body.token;
   }
 
   callApi = async () => {
