@@ -48,6 +48,24 @@ class InitilizeConnection extends React.Component {
       .then(res => this.setState({ data: res.api }))
       .catch(err => console.log(err));
 
+    let query = new URLSearchParams(this.props.location.search);
+    const token = query.get("token");
+
+    if (token) {
+      // there is already a token set
+      // TODO verify that it is a real token
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: token })
+        };
+
+      fetch('/verify_token', requestOptions)
+          .then(response => response.json())
+          .then(data => console.log(data));
+
+    }
+
     var rsa = forge.pki.rsa;
 
     rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
