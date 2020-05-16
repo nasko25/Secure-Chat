@@ -188,8 +188,11 @@ class InitilizeConnection extends React.Component {
   }
 
   componentWillUnmount() {
-    this.state.apiTestPromise.cancel();
-    this.state.generateRsaPromise.cancel();
+    if (this.state.apiTestPromise)
+      this.state.apiTestPromise.cancel();
+
+    if (this.state.generateRsaPromise)
+      this.state.generateRsaPromise.cancel();
   }
 }
 
