@@ -65,6 +65,14 @@ class InitilizeConnection extends React.Component {
           .then(data => console.log(data));
 
     }
+    else {
+      let newToken = "random_or_get_from_server"
+      this.props.history.push({
+        pathname: '/',
+        search: `?token=${newToken}`,
+        // state: {token: "do i need a state?"}
+      });
+    }
 
     var rsa = forge.pki.rsa;
 
