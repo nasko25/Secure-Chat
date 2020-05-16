@@ -48,7 +48,11 @@ class InitilizeConnection extends React.Component {
   }
 
   componentDidMount() {
-    this.callApi()
+    // canceled in componentWillUnmount to prevent memory leak
+    const apiTestPromise = makeCancelable(this.callApi());
+    this.setState({apiTestPromise: apiTestPromise});
+    apiTestPromise
+      .promise
       .then(res => this.setState({ data: res.api }))
       .catch(err => console.log(err));
 
@@ -57,8 +61,12 @@ class InitilizeConnection extends React.Component {
 
     if (token) {
       // there is already a token set
-      this.verifyToken(token).then(res => console.log(res)).catch(err => console.log(err));
-
+      this.verifyToken(token)
+        .then(res => console.log(res))
+        .catch(err => {
+          console.log(err);
+          this.props.history.push("/invalid_token");
+        });
     }
     else {
       this.getToken()
@@ -75,20 +83,48 @@ class InitilizeConnection extends React.Component {
 
     var rsa = forge.pki.rsa;
 
-    rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
+    let promise = new Promise(function(resolve, reject) {
+      rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
 
-      // some quick api tests
-      let a = keypair.publicKey.encrypt("asdf")
-      let b = forge.pki.publicKeyFromPem(forge.pki.publicKeyToPem(keypair.publicKey)).encrypt("asdf")
-      console.log(keypair.privateKey.decrypt(a));
-      console.log(keypair.privateKey.decrypt(b));
+        // some quick api tests
+        let a = keypair.publicKey.encrypt("asdf")
+        let b = forge.pki.publicKeyFromPem(forge.pki.publicKeyToPem(keypair.publicKey)).encrypt("asdf")
+        console.log(keypair.privateKey.decrypt(a));
+        console.log(keypair.privateKey.decrypt(b));
 
-      this.setState({ priv: keypair.privateKey});
-      this.setState({ pub: forge.pki.publicKeyToPem(keypair.publicKey)});
-    });
+        resolve(keypair);
+
+        reject("promise not fullfilled");
+      })
+    })
+
+    const generateRsaPromise = makeCancelable(promise);
+    this.setState({ generateRsaPromise: generateRsaPromise});
+    generateRsaPromise
+      .promise
+      .then(keypair => {
+        this.setState({ priv: keypair.privateKey});
+        this.setState({ pub: forge.pki.publicKeyToPem(keypair.publicKey)});
+      })
+      .catch(err => console.log(err));
 
     // this.setState({dh: crypto.createDiffieHellman(1024)});
   }
+
+  // generateRsa = async () => {
+  //   var rsa = forge.pki.rsa;
+  //   rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
+
+  //     // some quick api tests
+  //     let a = keypair.publicKey.encrypt("asdf")
+  //     let b = forge.pki.publicKeyFromPem(forge.pki.publicKeyToPem(keypair.publicKey)).encrypt("asdf")
+  //     console.log(keypair.privateKey.decrypt(a));
+  //     console.log(keypair.privateKey.decrypt(b));
+
+  //     this.setState({ priv: keypair.privateKey});
+  //     this.setState({ pub: forge.pki.publicKeyToPem(keypair.publicKey)});
+  //   })
+  // }
 
   verifyToken = async (token) => {
     // TODO verify that it is a real token
@@ -150,4 +186,29 @@ class InitilizeConnection extends React.Component {
       </div>
     );
   }
+
+  componentWillUnmount() {
+    this.state.apiTestPromise.cancel();
+    this.state.generateRsaPromise.cancel();
+  }
 }
+
+function makeCancelable(promise) {
+  if (promise) {
+    let hasCanceled_ = false;
+
+    const wrappedPromise = new Promise((resolve, reject) => {
+      promise.then(
+        val => hasCanceled_ ? reject({isCanceled: true}) : resolve(val),
+        error => hasCanceled_ ? reject({isCanceled: true}) : reject(error)
+      );
+    });
+
+    return {
+      promise: wrappedPromise,
+      cancel() {
+        hasCanceled_ = true;
+      },
+    };
+  }
+};

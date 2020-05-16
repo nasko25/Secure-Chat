@@ -19,7 +19,7 @@ app.post("/verify_token", (req, res) => {
 	console.log(req.body);
 	let token = req.body.token;
 	if (!(token in tokens)) {
-		res.status(400).end();
+		res.status(400).send({message: "Invalid token"});
 		//res.send("Sorry the token is invalid.\nThis might be caused by an expired session or just by an invalid token provided.")
 	}
 	res.end();
