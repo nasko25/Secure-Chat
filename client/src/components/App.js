@@ -7,6 +7,7 @@ import {
   withRouter
 } from "react-router-dom";
 import MainView from "./MainView.js"
+import InvalidToken from "./InvalidToken.js"
 import './index.css'
 import forge from "node-forge"
 
@@ -22,6 +23,9 @@ export default function App() {
         </Route>
         <Route path = "/chat">
           <MainView />
+        </Route>
+        <Route path = "/invalid_token">
+          <InvalidToken />
         </Route>
       </Switch>
     </Router>
@@ -98,6 +102,7 @@ class InitilizeConnection extends React.Component {
     const body = await response.json();
 
     if (response.status !== 200) {
+      // TODO redirect the user to a static page that says the token is invalid and asks them to refresh the page
       throw Error(body.message);
     }
 

@@ -242,3 +242,23 @@ div.readyLink {
     transform: rotate(360deg);
   }
 }
+
+/* ====================== invalid token page ================================ */
+.invalidTokenMessage {
+  margin: 0 auto;
+  margin-top: 4em;
+  width: 50%;
+  /*background: #16181d;*/
+  /*height: 20%;*/
+  min-height: 150px;
+  min-width: 200px;
+  text-indent: 3em;
+}
+
+.goBackMsg {
+  margin-top: 4em;
+}
+
+.goBackLink {
+  color: #aba0ba;
+}
