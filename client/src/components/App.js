@@ -44,7 +44,13 @@ class InitilizeConnection extends React.Component {
     document.getElementById("load").style.display = "inline-block";
 
     event.preventDefault();
-    setTimeout(()=>this.props.history.push(to), 5000);
+    setTimeout(()=> {
+      let query = new URLSearchParams(this.props.location.search);
+      let secret = document.getElementById("secret").textContent;
+      this.publicKeyExchange(this.state.pub, query.get("token"), secret);
+
+      this.props.history.push(to)
+    }, 5000);
   }
 
   componentDidMount() {
@@ -83,6 +89,7 @@ class InitilizeConnection extends React.Component {
 
     var rsa = forge.pki.rsa;
 
+    // make a promise for the generation of the rsa keys
     let promise = new Promise(function(resolve, reject) {
       rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
 
@@ -98,6 +105,7 @@ class InitilizeConnection extends React.Component {
       })
     })
 
+    // make the promise cancalable (so it will be canceled if the token is invalid as the page does not need to load in this case)
     const generateRsaPromise = makeCancelable(promise);
     this.setState({ generateRsaPromise: generateRsaPromise});
     generateRsaPromise
@@ -138,7 +146,6 @@ class InitilizeConnection extends React.Component {
     const body = await response.json();
 
     if (response.status !== 200) {
-      // TODO redirect the user to a static page that says the token is invalid and asks them to refresh the page
       throw Error(body.message);
     }
 
@@ -159,6 +166,23 @@ class InitilizeConnection extends React.Component {
 
   callApi = async () => {
     const response = await fetch("/api");
+    const body = await response.json();
+
+    if (response.status !== 200) {
+      throw Error(body.message);
+    }
+
+    return body;
+  }
+
+  publicKeyExchange = async (publicKey, token, secret) => {
+    const  requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' , 'Connection': 'close'},
+      body: JSON.stringify({ publicKey: publicKey, token: token, secret: secret })
+    }
+
+    const response = await fetch('/send_key', requestOptions);
     const body = await response.json();
 
     if (response.status !== 200) {

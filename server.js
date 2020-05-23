@@ -38,6 +38,15 @@ app.post("/verify_token", (req, res) => {
 	}
 });
 
+app.post("/send_key", (req, res) => {
+	let token = req.body.token;
+	let publicKey = req.body.publicKey;
+	let secret = req.body.secret;
+
+	console.log(token, publicKey, secret);
+
+});
+
 app.get("/generate_token", (req, res) => {
 	crypto.randomBytes(24, function(err, buffer) {
 	  if (err) {
