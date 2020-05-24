@@ -47,7 +47,10 @@ class InitilizeConnection extends React.Component {
     setTimeout(()=> {
       let query = new URLSearchParams(this.props.location.search);
       let secret = document.getElementById("secret").value;
-      this.publicKeyExchange(this.state.pub, query.get("token"), secret);
+      this.publicKeyExchange(this.state.pub, query.get("token"), secret).catch(err => {
+          console.log(err);
+          this.props.history.push("/invalid_token");
+        });
 
       // TODO open socket here and wait for the other client to also join
 

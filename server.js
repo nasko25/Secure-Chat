@@ -31,6 +31,7 @@ app.post("/verify_token", (req, res) => {
 	console.log(req.body);
 	let token = req.body.token;
 	if (!(token in tokens)) {
+		// TODO can also check if the number for the ClientPair connections for this token is < 2
 		res.status(400).send({message: "Invalid token"});
 		//res.send("Sorry the token is invalid.\nThis might be caused by an expired session or just by an invalid token provided.")
 	} else{
@@ -43,7 +44,28 @@ app.post("/send_key", (req, res) => {
 	let publicKey = req.body.publicKey;
 	let secret = req.body.secret;
 
+	if (!(token in tokens)) {
+		res.status(400).send({message: "Invalid token"});
+	} else {
+		var clientPair = tokens[token];
+		if (clientPair.client1 == null && clientPair.connections < 1) {
+			clientPair.client1 = new Client("TODO:socket", publicKey);
+			clientPair.connections++;
+			clientPair.lastUsed = Date.now();
+		} else if (clientPair.client2 == null && clientPair.connections < 2) {
+			clientPair.client2 = new Client("TODO:socket", publicKey);
+			clientPair.connections++;
+			clientPair.lastUsed = Date.now();
+		} else {
+			// There is already a connection established
+			// TODO might expand the functionallity so that more parties can join 
+			// Then I will need to figure out how to send them the already established AES key
+			// (they can probably obtain it from one of the other clients)
+			res.status(400).send({message: "Invalid token"});
+		}
+	}
 	console.log(token, publicKey, secret);
+	console.log("tokens:", tokens)
 
 });
 
