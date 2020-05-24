@@ -10,6 +10,7 @@ import MainView from "./MainView.js"
 import InvalidToken from "./InvalidToken.js"
 import './index.css'
 import forge from "node-forge"
+import io from 'socket.io-client';
 
 
 // TODO https://reacttraining.com/react-router/web/example/query-parameters     query parameters (chat id will be a parameter)
@@ -44,6 +45,9 @@ class InitilizeConnection extends React.Component {
     document.getElementById("load").style.display = "inline-block";
 
     event.preventDefault();
+
+    var socket = io();
+
     setTimeout(()=> {
       let query = new URLSearchParams(this.props.location.search);
       let secret = document.getElementById("secret").value;
@@ -56,6 +60,19 @@ class InitilizeConnection extends React.Component {
 
       this.props.history.push(to)
     }, 5000);
+
+    // socket.on("clientConnected", () => {
+    //   let query = new URLSearchParams(this.props.location.search);
+    //   let secret = document.getElementById("secret").value;
+    //   this.publicKeyExchange(this.state.pub, query.get("token"), secret).catch(err => {
+    //       console.log(err);
+    //       this.props.history.push("/invalid_token");
+    //     });
+
+    //   // TODO open socket here and wait for the other client to also join
+
+    //   this.props.history.push(to)
+    // });
   }
 
   componentDidMount() {

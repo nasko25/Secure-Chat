@@ -3,10 +3,11 @@ const crypto = require("crypto")
 const app = express();
 const port = process.env.PORT || 9000;
 const bodyParser = require("body-parser");
+const io = require("socket.io");
 
-function Client(socket, publicKey) {
-	this.socket = socket;
+function Client(publicKey) {
 	this.publicKey = publicKey;
+	this.socket = null;
 }
 
 function ClientPair(client1, client2) {
@@ -49,11 +50,11 @@ app.post("/send_key", (req, res) => {
 	} else {
 		var clientPair = tokens[token];
 		if (clientPair.client1 == null && clientPair.connections < 1) {
-			clientPair.client1 = new Client("TODO:socket", publicKey);
+			clientPair.client1 = new Client(publicKey);
 			clientPair.connections++;
 			clientPair.lastUsed = Date.now();
 		} else if (clientPair.client2 == null && clientPair.connections < 2) {
-			clientPair.client2 = new Client("TODO:socket", publicKey);
+			clientPair.client2 = new Client(publicKey);
 			clientPair.connections++;
 			clientPair.lastUsed = Date.now();
 		} else {
