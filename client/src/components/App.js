@@ -16,14 +16,17 @@ import io from 'socket.io-client';
 // TODO https://reacttraining.com/react-router/web/example/query-parameters     query parameters (chat id will be a parameter)
 export default function App() {
   const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
+
+  const socket = io();
+
   return (
     <Router>
       <Switch>
         <Route exact path = "/">
-          <InitilizeConnectionWithRouter/>
+          <InitilizeConnectionWithRouter socket = {socket}/>
         </Route>
         <Route path = "/chat">
-          <MainView />
+          <MainView socket = {socket}/>
         </Route>
         <Route path = "/invalid_token">
           <InvalidToken />
@@ -46,22 +49,7 @@ class InitilizeConnection extends React.Component {
 
     event.preventDefault();
 
-    var socket = io();
-
-    setTimeout(()=> {
-      let query = new URLSearchParams(this.props.location.search);
-      let secret = document.getElementById("secret").value;
-      this.publicKeyExchange(this.state.pub, query.get("token"), secret).catch(err => {
-          console.log(err);
-          this.props.history.push("/invalid_token");
-        });
-
-      // TODO open socket here and wait for the other client to also join
-
-      this.props.history.push(to)
-    }, 5000);
-
-    // socket.on("clientConnected", () => {
+    // setTimeout(()=> {
     //   let query = new URLSearchParams(this.props.location.search);
     //   let secret = document.getElementById("secret").value;
     //   this.publicKeyExchange(this.state.pub, query.get("token"), secret).catch(err => {
@@ -72,7 +60,28 @@ class InitilizeConnection extends React.Component {
     //   // TODO open socket here and wait for the other client to also join
 
     //   this.props.history.push(to)
-    // });
+    // }, 5000);
+
+    var socket = this.props.socket;
+
+    const query = new URLSearchParams(this.props.location.search);
+    const token = query.get("token");
+    const secret = document.getElementById("secret").value;
+
+    // TODO set a small timeout/interval(with while loop) to be sure that the public key is already set
+    socket.emit("clientConnected", {
+      token: token,
+      publicKey: this.state.publicKey,
+      secret: secret
+    });
+
+    socket.on("invalidToken", () => {
+      this.props.history.push("/invalid_token");
+    });
+
+    socket.on("clientConnected", () => {
+      this.props.history.push(to)
+    });
   }
 
   componentDidMount() {

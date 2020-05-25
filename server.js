@@ -1,13 +1,16 @@
 const express = require("express");
 const crypto = require("crypto")
+
 const app = express();
+const server = require('http').Server(app);
+const io = require("socket.io")(server);
+
 const port = process.env.PORT || 9000;
 const bodyParser = require("body-parser");
-const io = require("socket.io");
 
-function Client(publicKey) {
+function Client(publicKey, socket) {
 	this.publicKey = publicKey;
-	this.socket = null;
+	this.socket = socket;
 }
 
 function ClientPair(client1, client2) {
@@ -22,7 +25,7 @@ let tokens = {};
 
 app.use(bodyParser.json());
 
-app.listen(port, () => console.log(`Server listening on port ${port}`));
+server.listen(port, () => console.log(`Server listening on port ${port}`));
 
 app.get("/api", (req, res) => {
 	res.send({ api: "api test!" });
@@ -40,35 +43,35 @@ app.post("/verify_token", (req, res) => {
 	}
 });
 
-app.post("/send_key", (req, res) => {
-	let token = req.body.token;
-	let publicKey = req.body.publicKey;
-	let secret = req.body.secret;
+// app.post("/send_key", (req, res) => {
+// 	let token = req.body.token;
+// 	let publicKey = req.body.publicKey;
+// 	let secret = req.body.secret;
 
-	if (!(token in tokens)) {
-		res.status(400).send({message: "Invalid token"});
-	} else {
-		var clientPair = tokens[token];
-		if (clientPair.client1 == null && clientPair.connections < 1) {
-			clientPair.client1 = new Client(publicKey);
-			clientPair.connections++;
-			clientPair.lastUsed = Date.now();
-		} else if (clientPair.client2 == null && clientPair.connections < 2) {
-			clientPair.client2 = new Client(publicKey);
-			clientPair.connections++;
-			clientPair.lastUsed = Date.now();
-		} else {
-			// There is already a connection established
-			// TODO might expand the functionallity so that more parties can join 
-			// Then I will need to figure out how to send them the already established AES key
-			// (they can probably obtain it from one of the other clients)
-			res.status(400).send({message: "Invalid token"});
-		}
-	}
-	console.log(token, publicKey, secret);
-	console.log("tokens:", tokens)
+// 	if (!(token in tokens)) {
+// 		res.status(400).send({message: "Invalid token"});
+// 	} else {
+// 		var clientPair = tokens[token];
+// 		if (clientPair.client1 == null && clientPair.connections < 1) {
+// 			clientPair.client1 = new Client(publicKey);
+// 			clientPair.connections++;
+// 			clientPair.lastUsed = Date.now();
+// 		} else if (clientPair.client2 == null && clientPair.connections < 2) {
+// 			clientPair.client2 = new Client(publicKey);
+// 			clientPair.connections++;
+// 			clientPair.lastUsed = Date.now();
+// 		} else {
+// 			// There is already a connection established
+// 			// TODO might expand the functionallity so that more parties can join
+// 			// Then I will need to figure out how to send them the already established AES key
+// 			// (they can probably obtain it from one of the other clients)
+// 			res.status(400).send({message: "Invalid token"});
+// 		}
+// 	}
+// 	console.log(token, publicKey, secret);
+// 	console.log("tokens:", tokens)
 
-});
+// });
 
 app.get("/generate_token", (req, res) => {
 	crypto.randomBytes(24, function(err, buffer) {
@@ -86,6 +89,40 @@ app.get("/generate_token", (req, res) => {
 		res.end();
 	});
 });
+
+io.on("connection", (socket) => {
+	socket.on("clientConnected", (data) => {
+		let token = data.token;
+		let publicKey = data.publicKey;
+		let secret = data.secret;
+
+		if (!(token in tokens)) {
+			socket.emit("invalidToken");
+		} else {
+			var clientPair = tokens[token];
+			if (clientPair.client1 == null && clientPair.connections < 1) {
+				clientPair.client1 = new Client(publicKey, socket);
+				clientPair.connections++;
+				clientPair.lastUsed = Date.now();
+			} else if (clientPair.client1 != null && clientPair.client2 == null && clientPair.connections < 2) {
+				clientPair.client2 = new Client(publicKey, socket);
+				clientPair.connections++;
+				clientPair.lastUsed = Date.now();
+
+				// notify the other client that another client has connected
+				clientPair.client1.socket.emit("clientConnected");
+			} else {
+				// There is already a connection between two parties established
+				// TODO might expand the functionallity so that more parties can join
+				// Then I will need to figure out how to send them the already established AES key
+				// (they can probably obtain it from one of the other clients)
+				socket.emit("invalidToken");
+			}
+		}
+		console.log(token, publicKey, secret);
+		console.log("tokens:", tokens);
+	});
+})
 
 /*
 		if (!(token in tokens)) {
