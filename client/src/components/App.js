@@ -68,11 +68,15 @@ class InitilizeConnection extends React.Component {
     const token = query.get("token");
     const secret = document.getElementById("secret").value;
 
+    var md = forge.md.sha1.create();
+    md.update(secret, 'utf8');
+
     // TODO set a small timeout/interval(with while loop) to be sure that the public key is already set
     socket.emit("clientConnected", {
       token: token,
-      publicKey: this.state.publicKey,
-      secret: secret
+      publicKey: this.state.pub,
+      secret: this.state.priv.sign(md),
+      plainTextSecret: secret
     });
 
     socket.on("invalidToken", () => {

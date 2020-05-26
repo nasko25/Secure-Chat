@@ -8,14 +8,18 @@ const io = require("socket.io")(server);
 const port = process.env.PORT || 9000;
 const bodyParser = require("body-parser");
 
+const forge = require("node-forge");
+
 function Client(publicKey, socket) {
 	this.publicKey = publicKey;
 	this.socket = socket;
 }
 
-function ClientPair(client1, client2) {
+function ClientPair(client1, client2, secret) {
 	this.client1 = client1;
 	this.client2 = client2;
+	this.secret = secret;
+	this.plainTextSecret = null;
 	this.connections = 0;
 	this.lastUsed = Date.now();
 }
@@ -95,11 +99,25 @@ io.on("connection", (socket) => {
 		let token = data.token;
 		let publicKey = data.publicKey;
 		let secret = data.secret;
+		let plainTextSecret = data.plainTextSecret;
 
 		if (!(token in tokens)) {
 			socket.emit("invalidToken");
 		} else {
+			// TODO secret max length; what if empty?
+			// TODO display the secret to the client to verify if the public key has verified it
 			var clientPair = tokens[token];
+			clientPair.secret = secret;
+			clientPair.plainTextSecret = plainTextSecret;
+
+			console.log(publicKey)
+
+			var md = forge.md.sha1.create();
+			md.update(plainTextSecret, 'utf8');
+
+			console.log("is the secret signed with the public key:", forge.pki.publicKeyFromPem(publicKey).verify(md.digest().bytes(), secret));
+
+
 			if (clientPair.client1 == null && clientPair.connections < 1) {
 				clientPair.client1 = new Client(publicKey, socket);
 				clientPair.connections++;
