@@ -38,7 +38,9 @@ export default function App() {
 
 class InitilizeConnection extends React.Component {
   state = {
-    data: null
+    // data: null,
+    // assume that you are the initiator until the token is checked to be valid from the server
+    initiator: true
   };
 
   initiateConnection = (to, event)=> {
@@ -88,14 +90,18 @@ class InitilizeConnection extends React.Component {
     });
   }
 
+  secondClientConnect = (to) => {
+    // TODO
+  }
+
   componentDidMount() {
-    // canceled in componentWillUnmount to prevent memory leak
-    const apiTestPromise = makeCancelable(this.callApi());
-    this.setState({apiTestPromise: apiTestPromise});
-    apiTestPromise
-      .promise
-      .then(res => this.setState({ data: res.api }))
-      .catch(err => console.log(err));
+    // // canceled in componentWillUnmount to prevent memory leak
+    // const apiTestPromise = makeCancelable(this.callApi());
+    // this.setState({apiTestPromise: apiTestPromise});
+    // apiTestPromise
+    //   .promise
+    //   .then(res => this.setState({ data: res.api }))
+    //   .catch(err => console.log(err));
 
     let query = new URLSearchParams(this.props.location.search);
     const token = query.get("token");
@@ -108,6 +114,12 @@ class InitilizeConnection extends React.Component {
           console.log(err);
           this.props.history.push("/invalid_token");
         });
+
+        // this client was not the initiator and the token provided is indeed valid
+        this.setState({initiator: false});
+
+        // TODO REMOVE TEMPORARY
+        this.setState({secret: "Testing secret for now"})
     }
     else {
       this.getToken()
@@ -199,16 +211,16 @@ class InitilizeConnection extends React.Component {
     return body.token;
   }
 
-  callApi = async () => {
-    const response = await fetch("/api");
-    const body = await response.json();
+  // callApi = async () => {
+  //   const response = await fetch("/api");
+  //   const body = await response.json();
 
-    if (response.status !== 200) {
-      throw Error(body.message);
-    }
+  //   if (response.status !== 200) {
+  //     throw Error(body.message);
+  //   }
 
-    return body;
-  }
+  //   return body;
+  // }
 
   publicKeyExchange = async (publicKey, token, secret) => {
     const  requestOptions = {
@@ -228,8 +240,12 @@ class InitilizeConnection extends React.Component {
   }
 
   render() {
-    return (
-      <div className = "indexPage mainView">
+    // TODO more readability at the cost of a little code duplication; it is worth it?
+
+    let box;
+    // if this client is the initiator, show the box where the user can input a secret
+    if (this.state.initiator) {
+      box = (
         <div className="box">
           <input type="input" className="secretField" placeholder="Secret" name="secret" id='secret'/>
           <label htmlFor="secret" className="secretLabel">Secret</label>
@@ -239,9 +255,35 @@ class InitilizeConnection extends React.Component {
             <div className="loader" id = "load"><div></div><div></div><div></div><div></div></div>
           </div>
         </div>
+      );
+    } else {
+      // TODO add the secret from the initiator to the state
+      let secret;
+      // if the secret is empty or composed of only space characters
+      if (this.state.secret === undefined || this.state.secret.replace(/\s/g, "") === "") {
+        secret = "";
+      } else {
+        secret = (
+          <div>
+            <h2> Secret: {this.state.secret} </h2>
+            <p className = "secretDescription"> * Could this have been the secret sent from the initiator of the connection (i.e. from the person what sent you the link) </p>
+          </div>
+        );
+      }
+      box = (
+        <div className="boxSecondClient">
+          {secret}
+          <div className="readyBtn">
+            <Link className="readyLink" to = "chat" onClick={(event) => this.initiateConnection({ pathname: `chat`, /* hash: `#hash`, */ }, event)}> Connect </Link>
+            <div className="loader" id = "load"><div></div><div></div><div></div><div></div></div>
+          </div>
+        </div>
+      );
+    }
 
-        <p> Data from the api: {this.state.data} </p>
-        <p> Testing rsa: {this.state.pub} </p>
+    return (
+      <div className = "indexPage mainView">
+        {box}
       </div>
     );
   }
