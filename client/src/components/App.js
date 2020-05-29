@@ -13,7 +13,6 @@ import forge from "node-forge"
 import io from 'socket.io-client';
 
 
-// TODO https://reacttraining.com/react-router/web/example/query-parameters     query parameters (chat id will be a parameter)
 export default function App() {
   const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
 
@@ -126,13 +125,16 @@ class InitilizeConnection extends React.Component {
       md.update(data.plainTextSecret, 'utf8');
 
       try {
-        console.log("VERIFY THE SECRET SENT FROM THE OTHER CLIENT:", forge.pki.publicKeyFromPem(data.publicKey).verify(md.digest().bytes(), data.secret));
+        // if the key matches the signed key
+        if (forge.pki.publicKeyFromPem(data.publicKey).verify(md.digest().bytes(), data.secret)) {
+          // set the this.state.secret
+          this.setState({secret: data.plainTextSecret});
+        } else {           // redirect if the signed secret and plain secret do not match
+          this.props.history.push("/connection_interrupted");
+        }
       } catch(err) {
         this.props.history.push("/connection_interrupted");
       }
-
-      // set the this.state.secret
-      // redirect if the signed secret and plain secret do not match
     });
   }
 
@@ -159,9 +161,6 @@ class InitilizeConnection extends React.Component {
 
         // this client was not the initiator and the token provided is indeed valid
         this.setState({initiator: false});
-
-        // TODO REMOVE TEMPORARY
-        this.setState({secret: "Testing secret for now"})
     }
 
     var rsa = forge.pki.rsa;

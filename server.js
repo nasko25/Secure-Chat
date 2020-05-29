@@ -24,6 +24,8 @@ function ClientPair(client1, client2, secret) {
 	this.lastUsed = Date.now();
 }
 
+// TODO null checks
+
 // TODO clear the tokens that have stayed for too long
 let tokens = {};
 
@@ -97,13 +99,13 @@ io.on("connection", (socket) => {
 
 		if (!(token in tokens)) {
 			socket.emit("invalidToken");
-		} else {
+		} else if (token != null && publicKey != null) {
 			// TODO secret max length; what if empty?
 			// TODO display the secret to the client to verify if the public key has verified it
 			var clientPair = tokens[token];
 
 			// if it is client1's connection
-			if (clientPair.client1 == null && clientPair.connections < 1) {
+			if (clientPair.client1 == null && clientPair.connections < 1 && data.secret != null && data.plainTextSecret != null) {
 				let secret = data.secret;
 				let plainTextSecret = data.plainTextSecret;
 
