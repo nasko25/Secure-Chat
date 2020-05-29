@@ -51,43 +51,56 @@ class InitilizeConnection extends React.Component {
 
     event.preventDefault();
 
-    // setTimeout(()=> {
-    //   let query = new URLSearchParams(this.props.location.search);
-    //   let secret = document.getElementById("secret").value;
-    //   this.publicKeyExchange(this.state.pub, query.get("token"), secret).catch(err => {
-    //       console.log(err);
-    //       this.props.history.push("/invalid_token");
-    //     });
 
-    //   // TODO open socket here and wait for the other client to also join
+    this.getToken()
+      .then(res => {
+        let newToken = res;
+        this.props.history.push({
+          pathname: '/',
+          search: `?token=${newToken}`,
+          // state: {token: "do i need a state?"}
+        });
 
-    //   this.props.history.push(to)
-    // }, 5000);
+        // setTimeout(()=> {
+        //   let query = new URLSearchParams(this.props.location.search);
+        //   let secret = document.getElementById("secret").value;
+        //   this.publicKeyExchange(this.state.pub, query.get("token"), secret).catch(err => {
+        //       console.log(err);
+        //       this.props.history.push("/invalid_token");
+        //     });
 
-    var socket = this.props.socket;
+        //   // TODO open socket here and wait for the other client to also join
 
-    const query = new URLSearchParams(this.props.location.search);
-    const token = query.get("token");
-    const secret = document.getElementById("secret").value;
+        //   this.props.history.push(to)
+        // }, 5000);
 
-    var md = forge.md.sha1.create();
-    md.update(secret, 'utf8');
+        var socket = this.props.socket;
 
-    // TODO set a small timeout/interval(with while loop) to be sure that the public key is already set
-    socket.emit("clientConnected", {
-      token: token,
-      publicKey: this.state.pub,
-      secret: this.state.priv.sign(md),
-      plainTextSecret: secret
-    });
+        const query = new URLSearchParams(this.props.location.search);
+        const token = query.get("token");
+        const secret = document.getElementById("secret").value;
 
-    socket.on("invalidToken", () => {
-      this.props.history.push("/invalid_token");
-    });
+        var md = forge.md.sha1.create();
+        md.update(secret, 'utf8');
 
-    socket.on("clientConnected", () => {
-      this.props.history.push(to)
-    });
+        // TODO set a small timeout/interval(with while loop) to be sure that the public key is already set
+        socket.emit("clientConnected", {
+          token: token,
+          publicKey: this.state.pub,
+          secret: this.state.priv.sign(md),
+          plainTextSecret: secret
+        });
+
+        socket.on("invalidToken", () => {
+          this.props.history.push("/invalid_token");
+        });
+
+        socket.on("clientConnected", () => {
+          this.props.history.push(to)
+        });
+
+    })
+    .catch(err => console.log(err));
   }
 
   secondClientConnect = (to, event) => {
@@ -119,6 +132,7 @@ class InitilizeConnection extends React.Component {
       }
 
       // set the this.state.secret
+      // redirect if the signed secret and plain secret do not match
     });
   }
 
@@ -148,18 +162,6 @@ class InitilizeConnection extends React.Component {
 
         // TODO REMOVE TEMPORARY
         this.setState({secret: "Testing secret for now"})
-    }
-    else {
-      this.getToken()
-        .then(res => {
-          let newToken = res;
-          this.props.history.push({
-            pathname: '/',
-            search: `?token=${newToken}`,
-            // state: {token: "do i need a state?"}
-          });
-        })
-        .catch(err => console.log(err));
     }
 
     var rsa = forge.pki.rsa;
@@ -298,7 +300,6 @@ class InitilizeConnection extends React.Component {
           </div>
         );
       }
-      // TODO if a user creates a token and sends it to a second person, and the second person connects first, the application breaks
       box = (
         <div className="boxSecondClient">
           {secret}
