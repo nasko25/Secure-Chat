@@ -102,13 +102,11 @@ class InitilizeConnection extends React.Component {
     .catch(err => console.log(err));
   }
 
-  secondClientConnect = (to, event) => {
+  secondClientConnect = () => {
     // TODO
 
-    document.getElementsByClassName("readyLink")[0].style.display = "none";
-    document.getElementById("load").style.display = "inline-block";
-
-    event.preventDefault();
+    // document.getElementsByClassName("readyLink")[0].style.display = "none";
+    // document.getElementById("load").style.display = "inline-block";
 
     var socket = this.props.socket;
 
@@ -136,6 +134,21 @@ class InitilizeConnection extends React.Component {
         this.props.history.push("/connection_interrupted");
       }
     });
+  }
+
+  secondClientApprove = (to, event) => {
+    var socket = this.props.socket;
+
+    const query = new URLSearchParams(this.props.location.search);
+    const token = query.get("token");
+
+    event.preventDefault();
+
+    socket.emit("client2Approve", {
+      token: token
+    });
+
+    this.props.history.push(to);
   }
 
   componentDidMount() {
@@ -286,7 +299,6 @@ class InitilizeConnection extends React.Component {
         </div>
       );
     } else {
-      // TODO add the secret from the initiator to the state
       let secret;
       // if the secret is empty or composed of only space characters
       if (this.state.secret === undefined || this.state.secret.replace(/\s/g, "") === "") {
@@ -299,11 +311,13 @@ class InitilizeConnection extends React.Component {
           </div>
         );
       }
+
+      this.secondClientConnect();
       box = (
         <div className="boxSecondClient">
           {secret}
           <div className="readyBtn">
-            <Link className="readyLink" to = "chat" onClick={(event) => this.secondClientConnect({ pathname: `chat`, /* hash: `#hash`, */ }, event)}> Connect </Link>
+            <Link className="readyLink" to = "chat" onClick = {(event) => this.secondClientApprove({ pathname: `chat`}, event) }> Connect </Link>
             <div className="loader" id = "load"><div></div><div></div><div></div><div></div></div>
           </div>
         </div>

@@ -131,9 +131,6 @@ io.on("connection", (socket) => {
 				clientPair.connections++;
 				clientPair.lastUsed = Date.now();
 
-				// notify the other client that another client has connected
-				clientPair.client1.socket.emit("clientConnected");
-
 				// send the client1 information to client2
 				clientPair.client2.socket.emit("client1Information", {
 					publicKey: clientPair.client1.publicKey,
@@ -148,6 +145,18 @@ io.on("connection", (socket) => {
 				// (they can probably obtain it from one of the other clients)
 				socket.emit("invalidToken");
 			}
+		}
+	});
+
+	socket.on("client2Approve", (data) => {
+		let token = data.token;
+
+		if (!(token in tokens)) {
+			socket.emit("invalidToken");
+		} else {
+			var clientPair = tokens[token];
+			// notify the other client that another client has connected
+			clientPair.client1.socket.emit("clientConnected");
 		}
 	});
 })
