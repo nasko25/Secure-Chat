@@ -94,8 +94,6 @@ io.on("connection", (socket) => {
 	socket.on("clientConnected", (data) => {
 		let token = data.token;
 		let publicKey = data.publicKey;
-		let secret = data.secret;
-		let plainTextSecret = data.plainTextSecret;
 
 		if (!(token in tokens)) {
 			socket.emit("invalidToken");
@@ -103,28 +101,44 @@ io.on("connection", (socket) => {
 			// TODO secret max length; what if empty?
 			// TODO display the secret to the client to verify if the public key has verified it
 			var clientPair = tokens[token];
-			clientPair.secret = secret;
-			clientPair.plainTextSecret = plainTextSecret;
 
-			console.log(publicKey)
-
-			var md = forge.md.sha1.create();
-			md.update(plainTextSecret, 'utf8');
-
-			console.log("is the secret signed with the public key:", forge.pki.publicKeyFromPem(publicKey).verify(md.digest().bytes(), secret));
-
-
+			// if it is client1's connection
 			if (clientPair.client1 == null && clientPair.connections < 1) {
+				let secret = data.secret;
+				let plainTextSecret = data.plainTextSecret;
+
+				clientPair.secret = secret;
+				clientPair.plainTextSecret = plainTextSecret;
+
+				console.log(publicKey);
+
+				// ================================================================================================================================
+
+				var md = forge.md.sha1.create();
+				md.update(plainTextSecret, 'utf8');
+
+				console.log("is the secret signed with the public key:", forge.pki.publicKeyFromPem(publicKey).verify(md.digest().bytes(), secret));
+
+				// =================================================================================================================================
+
 				clientPair.client1 = new Client(publicKey, socket);
 				clientPair.connections++;
 				clientPair.lastUsed = Date.now();
-			} else if (clientPair.client1 != null && clientPair.client2 == null && clientPair.connections < 2) {
+			} else if (clientPair.client1 != null && clientPair.client2 == null && clientPair.connections < 2) {		// client2 connected
 				clientPair.client2 = new Client(publicKey, socket);
 				clientPair.connections++;
 				clientPair.lastUsed = Date.now();
 
 				// notify the other client that another client has connected
 				clientPair.client1.socket.emit("clientConnected");
+
+				// send the client1 information to client2
+				clientPair.client2.socket.emit("client1Information", {
+					publicKey: clientPair.client1.publicKey,
+					secret: clientPair.secret,
+					plainTextSecret: clientPair.plainTextSecret
+				});
+
 			} else {
 				// There is already a connection between two parties established
 				// TODO might expand the functionallity so that more parties can join
@@ -133,8 +147,6 @@ io.on("connection", (socket) => {
 				socket.emit("invalidToken");
 			}
 		}
-		console.log(token, publicKey, secret);
-		console.log("tokens:", tokens);
 	});
 })
 

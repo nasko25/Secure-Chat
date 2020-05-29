@@ -90,8 +90,36 @@ class InitilizeConnection extends React.Component {
     });
   }
 
-  secondClientConnect = (to) => {
+  secondClientConnect = (to, event) => {
     // TODO
+
+    document.getElementsByClassName("readyLink")[0].style.display = "none";
+    document.getElementById("load").style.display = "inline-block";
+
+    event.preventDefault();
+
+    var socket = this.props.socket;
+
+    const query = new URLSearchParams(this.props.location.search);
+    const token = query.get("token");
+
+    socket.emit("clientConnected", {
+      token: token,
+      publicKey: this.state.pub,
+    });
+
+    socket.on("client1Information", (data) => {
+      var md = forge.md.sha1.create();
+      md.update(data.plainTextSecret, 'utf8');
+
+      try {
+        console.log("VERIFY THE SECRET SENT FROM THE OTHER CLIENT:", forge.pki.publicKeyFromPem(data.publicKey).verify(md.digest().bytes(), data.secret));
+      } catch(err) {
+        this.props.history.push("/connection_interrupted");
+      }
+
+      // set the this.state.secret
+    });
   }
 
   componentDidMount() {
@@ -270,11 +298,12 @@ class InitilizeConnection extends React.Component {
           </div>
         );
       }
+      // TODO if a user creates a token and sends it to a second person, and the second person connects first, the application breaks
       box = (
         <div className="boxSecondClient">
           {secret}
           <div className="readyBtn">
-            <Link className="readyLink" to = "chat" onClick={(event) => this.initiateConnection({ pathname: `chat`, /* hash: `#hash`, */ }, event)}> Connect </Link>
+            <Link className="readyLink" to = "chat" onClick={(event) => this.secondClientConnect({ pathname: `chat`, /* hash: `#hash`, */ }, event)}> Connect </Link>
             <div className="loader" id = "load"><div></div><div></div><div></div><div></div></div>
           </div>
         </div>
