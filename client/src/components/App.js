@@ -102,7 +102,7 @@ class InitilizeConnection extends React.Component {
         socket.on("client2Information", (data) => {
           this.setState({otherClientPublicKeyPem: data.publicKey});
 
-          // TODO make it a promise and cancel it on componentWillUnmount !!! (because it may lead to a memory leak)
+          // TODO make it a promise and cancel it on componentWillUnmount ? (can it lead to a memory leak?)
           // generate the first part of the encryption key
           crypto.randomBytes(24, (err, buffer) => {
             if (err) {
@@ -189,7 +189,7 @@ class InitilizeConnection extends React.Component {
 
     event.preventDefault();
 
-    // TODO make it a promise and cancel it on componentWillUnmount !!! (because it may lead to a memory leak)
+    // TODO make it a promise and cancel it on componentWillUnmount ? (can it lead to a memory leak?)
     // generate a random encryption key
     crypto.randomBytes(24, (err, buffer) => {
       if (err) {
@@ -409,6 +409,8 @@ class InitilizeConnection extends React.Component {
 
     if (this.state.generateRsaPromise)
       this.state.generateRsaPromise.cancel();
+
+    this.props.socket.close();
   }
 }
 
