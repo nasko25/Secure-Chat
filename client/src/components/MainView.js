@@ -34,6 +34,16 @@ export default class MainView extends React.Component {
 
     // Remove navigation prompt
     // window.onbeforeunload = null;
+
+    const connectionInformation = this.props.getConnectionInformation();
+
+    // TODO:
+    // if connection information is not set, redirect the user to the homepage
+    // if (!connectionInformation)
+    //   this.props.history.push("/");
+
+    var socket = this.props.socket;
+    socket.open();
   }
 
   render() {

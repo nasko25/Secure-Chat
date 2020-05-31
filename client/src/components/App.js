@@ -14,26 +14,46 @@ import io from 'socket.io-client';
 import crypto from 'crypto'
 
 
-export default function App() {
-  const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
+export default class App extends React.Component {
+  /*
+    This method is used to set information like connection token,
+    the encryption key that the parties agreed on (and maybe later the
+    public and private keys) for the connection initilized
+    by the class InitilizeConnection.
+  */
+  setConnectionInformation(data) {
+    this.connectionInformation = data;
+  }
 
-  const socket = io();
+  /*
+    Retrieve the connection information that was set in the
+    method above.
+  */
+  getConnectionInformation() {
+    return this.connectionInformation;
+  }
 
-  return (
-    <Router>
-      <Switch>
-        <Route exact path = "/">
-          <InitilizeConnectionWithRouter socket = {socket}/>
-        </Route>
-        <Route path = "/chat">
-          <MainView socket = {socket}/>
-        </Route>
-        <Route path = "/invalid_token">
-          <InvalidToken />
-        </Route>
-      </Switch>
-    </Router>
-  );
+  render() {
+    const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
+
+    const socket = io();
+
+    return (
+      <Router>
+        <Switch>
+          <Route exact path = "/">
+            <InitilizeConnectionWithRouter socket = {socket} setParentLink = {this.setConnectionInformation.bind(this)} />
+          </Route>
+          <Route path = "/chat">
+            <MainView socket = {socket} getConnectionInformation = {this.getConnectionInformation.bind(this)}/>
+          </Route>
+          <Route path = "/invalid_token">
+            <InvalidToken />
+          </Route>
+        </Switch>
+      </Router>
+    );
+  }
 }
 
 class InitilizeConnection extends React.Component {
@@ -411,6 +431,19 @@ class InitilizeConnection extends React.Component {
       this.state.generateRsaPromise.cancel();
 
     this.props.socket.close();
+
+    var fullKey = this.state.encryptionKeyFirstHalf + this.state.encryptionKeySecondHalf;
+
+    const query = new URLSearchParams(this.props.location.search);
+    const token = query.get("token");
+
+    var data = {
+      token: token,
+      key: fullKey
+    };
+
+    // pass the information about the connection to the parent component
+    this.props.setParentLink(data);
   }
 }
 
