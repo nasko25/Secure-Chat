@@ -271,6 +271,10 @@ class InitilizeConnection extends React.Component {
       .then(keypair => {
         this.setState({ priv: keypair.privateKey});
         this.setState({ pub: forge.pki.publicKeyToPem(keypair.publicKey)});
+
+        // if it is not the initiator, call the second client connected method
+        if (!this.state.initiator)
+          this.secondClientConnect();
       })
       .catch(err => console.log(err));
 
@@ -381,7 +385,6 @@ class InitilizeConnection extends React.Component {
         );
       }
 
-      this.secondClientConnect();
       box = (
         <div className="boxSecondClient">
           {secret}
