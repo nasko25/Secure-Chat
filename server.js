@@ -26,6 +26,9 @@ function ClientPair(client1, client2, secret) {
 
 // TODO null checks
 
+// TODO if a client gives a token that does not exist, close the socket (and maybe the other socket connected to it too?):
+// TODO if one socket in the client pair closes, close the other automatically?
+
 // TODO clear the tokens that have stayed for too long
 let tokens = {};
 
@@ -36,11 +39,11 @@ server.listen(port, () => console.log(`Server listening on port ${port}`));
 app.post("/verify_token", (req, res) => {
 	console.log(req.body);
 	let token = req.body.token;
-	if (!(token in tokens)) {
+	if (!(token in tokens) || tokens[token].connections >= 2) {
 		// TODO can also check if the number for the ClientPair connections for this token is < 2
 		res.status(400).send({message: "Invalid token"});
 		//res.send("Sorry the token is invalid.\nThis might be caused by an expired session or just by an invalid token provided.")
-	} else{
+	} else {
 		res.send({})
 	}
 });

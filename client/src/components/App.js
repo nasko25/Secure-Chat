@@ -35,6 +35,7 @@ export default class App extends React.Component {
 
   render() {
     const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
+    const MainViewWithRouter = withRouter(MainView);
 
     const socket = io();
 
@@ -45,7 +46,7 @@ export default class App extends React.Component {
             <InitilizeConnectionWithRouter socket = {socket} setParentLink = {this.setConnectionInformation.bind(this)} />
           </Route>
           <Route path = "/chat">
-            <MainView socket = {socket} getConnectionInformation = {this.getConnectionInformation.bind(this)}/>
+            <MainViewWithRouter socket = {socket} getConnectionInformation = {this.getConnectionInformation.bind(this)}/>
           </Route>
           <Route path = "/invalid_token">
             <InvalidToken />
@@ -248,6 +249,8 @@ class InitilizeConnection extends React.Component {
     //   .promise
     //   .then(res => this.setState({ data: res.api }))
     //   .catch(err => console.log(err));
+
+    this.props.socket.open();
 
     let query = new URLSearchParams(this.props.location.search);
     const token = query.get("token");
