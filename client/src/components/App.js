@@ -11,6 +11,7 @@ import InvalidToken from "./InvalidToken.js"
 import './index.css'
 import forge from "node-forge"
 import io from 'socket.io-client';
+import crypto from 'crypto'
 
 
 export default function App() {
@@ -98,12 +99,45 @@ class InitilizeConnection extends React.Component {
           this.props.history.push(to)
         });
 
-    })
-    .catch(err => console.log(err));
+        socket.on("client2Information", (data) => {
+          this.setState({otherClientPublicKeyPem: data.publicKey});
+
+          // TODO make it a promise and cancel it on componentWillUnmount !!! (because it may lead to a memory leak)
+          // generate the first part of the encryption key
+          crypto.randomBytes(24, (err, buffer) => {
+            if (err) {
+              console.log(err);
+            }
+
+            if (buffer) {
+              var key = buffer.toString('hex');
+              var publicKey = forge.pki.publicKeyFromPem(data.publicKey);
+
+              this.setState({encryptionKeyFirstHalf: key});
+
+              console.log("my (first) half:", key);
+
+              socket.emit("firstHalfKey", {
+                key: publicKey.encrypt(key),
+                token: token
+              });
+            }
+          });
+        });
+
+        socket.on("secondHalfKey", (data) => {
+          var key = this.state.priv.decrypt(data.key);
+
+          this.setState({encryptionKeySecondHalf: key});
+
+          console.log("second half received:", key);
+        });
+
+      })
+      .catch(err => console.log(err));
   }
 
   secondClientConnect = () => {
-    // TODO
 
     // document.getElementsByClassName("readyLink")[0].style.display = "none";
     // document.getElementById("load").style.display = "inline-block";
@@ -127,12 +161,23 @@ class InitilizeConnection extends React.Component {
         if (forge.pki.publicKeyFromPem(data.publicKey).verify(md.digest().bytes(), data.secret)) {
           // set the this.state.secret
           this.setState({secret: data.plainTextSecret});
+
+          // set the this.state.otherClientPublicKeyPem with the public key of client 1
+          this.setState({otherClientPublicKeyPem: data.publicKey});
         } else {           // redirect if the signed secret and plain secret do not match
           this.props.history.push("/connection_interrupted");
         }
       } catch(err) {
         this.props.history.push("/connection_interrupted");
       }
+    });
+
+    // receive the generated half of the key from the other client
+    socket.on("firstHalfKey", (data) => {
+      var key = this.state.priv.decrypt(data.key);
+
+      this.setState({encryptionKeyFirstHalf: key});
+      console.log("first half received:", key);
     });
   }
 
@@ -144,11 +189,35 @@ class InitilizeConnection extends React.Component {
 
     event.preventDefault();
 
-    socket.emit("client2Approve", {
-      token: token
+    // TODO make it a promise and cancel it on componentWillUnmount !!! (because it may lead to a memory leak)
+    // generate a random encryption key
+    crypto.randomBytes(24, (err, buffer) => {
+      if (err) {
+        console.log(err);
+      }
+
+      if (buffer) {
+        var key = buffer.toString('hex');
+        var publicKey = forge.pki.publicKeyFromPem(this.state.otherClientPublicKeyPem)
+
+        socket.emit("secondHalfKey", {
+          key: publicKey.encrypt(key),
+          token: token
+        });
+
+        this.setState({encryptionKeySecondHalf: key});
+
+        socket.emit("client2Approve", {
+          token: token
+        });
+
+        console.log("my (second) half:", key);
+
+        // redirect the user to the chat
+        this.props.history.push(to);
+      }
     });
 
-    this.props.history.push(to);
   }
 
   componentDidMount() {

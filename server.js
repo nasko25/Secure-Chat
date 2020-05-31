@@ -138,6 +138,11 @@ io.on("connection", (socket) => {
 					plainTextSecret: clientPair.plainTextSecret
 				});
 
+				// send the client2 information to client1
+				clientPair.client1.socket.emit("client2Information", {
+					publicKey: clientPair.client2.publicKey
+				});
+
 			} else {
 				// There is already a connection between two parties established
 				// TODO might expand the functionallity so that more parties can join
@@ -158,6 +163,27 @@ io.on("connection", (socket) => {
 			// notify the other client that another client has connected
 			clientPair.client1.socket.emit("clientConnected");
 		}
+	});
+
+	// pass the received encrypted secrets to the other clients
+	socket.on("firstHalfKey", (data) => {
+		let token = data.token;
+
+		var clientPair = tokens[token];
+
+		console.log("first half send!")
+		clientPair.client2.socket.emit("firstHalfKey", {
+			key: data.key
+		});
+	});
+	socket.on("secondHalfKey", (data) => {
+		let token = data.token;
+
+		var clientPair = tokens[token];
+
+		clientPair.client1.socket.emit("secondHalfKey", {
+			key: data.key
+		});
 	});
 })
 
