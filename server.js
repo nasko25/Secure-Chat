@@ -10,11 +10,39 @@ const bodyParser = require("body-parser");
 
 const forge = require("node-forge");
 
+/*
+	Represents the two clients in the communication.
+	Both of them need to share their public key and the
+	socket through which they communicate.
+
+	The public key is used for a secure encryption key exchange
+	when the parties agree on the encryption key to be used.
+
+	The encryption key is only known by the two parties and they both
+	participate in its creation (both of them generate 24 random bytes
+	which when combined create the encryption key).
+*/
 function Client(publicKey, socket) {
 	this.publicKey = publicKey;
 	this.socket = socket;
 }
 
+/*
+	Represents the pair of clients that communicate with each other.
+
+	Each connection needs:
+	* the two client functions/object (with their respective information, specified above)
+	* a pair of secret (signed with the private key of the initiator client) and its plain text counterpart;
+		they are used to prove that the initiator client is authentic;
+		since the client decides what the secret is, the other party will see the chosen secret and needs to approve
+		the authenticity of the chosen word/phrase before a connection between them is established
+
+		of course there is no way for them to exchange this secret securely before the connection takes place,
+		but I assume that since they know each other, the initiator client can choose some secret that will prove his/hers authenticity.
+
+	* number of connections, as there can be at most 2 parties in the connection
+	* a last used timestamp, which will later be used to close unused connections
+*/
 function ClientPair(client1, client2, secret) {
 	this.client1 = client1;
 	this.client2 = client2;
@@ -30,20 +58,29 @@ function ClientPair(client1, client2, secret) {
 // TODO if one socket in the client pair closes, close the other automatically?
 
 // TODO clear the tokens that have stayed for too long
+/*
+	This object keeps track of the tokens and clientPair connections.
+	The tokens are the keys and their associated clientPair objects/functions are the values of the tokens object.
+*/
 let tokens = {};
 
 app.use(bodyParser.json());
 
 server.listen(port, () => console.log(`Server listening on port ${port}`));
 
+// verity that the token is valid
+// (used by the second client when they receive a url with a token)
 app.post("/verify_token", (req, res) => {
 	console.log(req.body);
 	let token = req.body.token;
+
+	// if the token is not a key in the object tokens or there are already 2 connected clients
 	if (!(token in tokens) || tokens[token].connections >= 2) {
-		// TODO can also check if the number for the ClientPair connections for this token is < 2
+		// respond with a response code 400 Bad Request
 		res.status(400).send({message: "Invalid token"});
 		//res.send("Sorry the token is invalid.\nThis might be caused by an expired session or just by an invalid token provided.")
 	} else {
+		// otherwise don't do anything; the token is valid
 		res.send({})
 	}
 });
@@ -78,31 +115,47 @@ app.post("/verify_token", (req, res) => {
 
 // });
 
+/*
+	Generates a token.
+	It is used by the initiator client, when they input a secret.
+	This token is then placed in the url as a parameter, and the client needs to share the url, so that
+	a second client can join in the connection.
+*/
 app.get("/generate_token", (req, res) => {
+	// generate 24 pseudorandom cryptographically safe bytes that will be used as a token
 	crypto.randomBytes(24, function(err, buffer) {
+	  // if there is an error, console.log it and don't do anything (should not happen in practice)
 	  if (err) {
 		console.log(err);
 		res.end();
 	  }
+	  // if buffer is not undefined (should always be the case)
 	  if (buffer) {
+		// convert the bytes to a hex representation, so they can be used as a url parameter
 		let token = buffer.toString('hex');
+		// send the token to the initiator client, create a new ClientPair object, and save it in the tokens object
+		// with the token as the key
 		res.send({token: token});
 		// TODO collisions?
 		tokens[token] = new ClientPair();
-	  }
+	  }		// otherwise don't do anything (should not happen in practice)
 	  else
 		res.end();
 	});
 });
 
+// listen for socket.io connections
 io.on("connection", (socket) => {
+	// if a client is connected
 	socket.on("clientConnected", (data) => {
+		// get the token and the public key of the client
 		let token = data.token;
 		let publicKey = data.publicKey;
 
+		// if the token is not in the tokens object, it is not valid, so send "invalidToken" message
 		if (!(token in tokens)) {
 			socket.emit("invalidToken");
-		} else if (token != null && publicKey != null) {
+		} else if (token != null && publicKey != null) {				// if the token and the public key are not null/undefined:
 			// TODO secret max length; what if empty?
 			// TODO display the secret to the client to verify if the public key has verified it
 			var clientPair = tokens[token];
@@ -112,13 +165,15 @@ io.on("connection", (socket) => {
 				let secret = data.secret;
 				let plainTextSecret = data.plainTextSecret;
 
+				// keep track of the secret and plainTextSecret of the connection
 				clientPair.secret = secret;
 				clientPair.plainTextSecret = plainTextSecret;
 
 				console.log(publicKey);
 
 				// ================================================================================================================================
-
+				// just testing if the verification of the signed secret works (the secret was signed with the client's private key and
+				// can be verified by the public key)
 				var md = forge.md.sha1.create();
 				md.update(plainTextSecret, 'utf8');
 
@@ -126,6 +181,7 @@ io.on("connection", (socket) => {
 
 				// =================================================================================================================================
 
+				// create a new client object and keep track of it in the clientPair
 				clientPair.client1 = new Client(publicKey, socket);
 				clientPair.connections++;
 				clientPair.lastUsed = Date.now();
@@ -156,6 +212,7 @@ io.on("connection", (socket) => {
 		}
 	});
 
+	// if the second client approves the connection
 	socket.on("client2Approve", (data) => {
 		let token = data.token;
 
@@ -169,16 +226,21 @@ io.on("connection", (socket) => {
 	});
 
 	// pass the received encrypted secrets to the other clients
+	// the first half of the encrytion key is sent by the first client
 	socket.on("firstHalfKey", (data) => {
 		let token = data.token;
 
 		var clientPair = tokens[token];
 
 		console.log("first half send!")
+		// just forward the encrypted key to the second client
 		clientPair.client2.socket.emit("firstHalfKey", {
 			key: data.key
 		});
 	});
+
+	// when the second client sends its part of the encryption key,
+	// forward it to the first client
 	socket.on("secondHalfKey", (data) => {
 		let token = data.token;
 

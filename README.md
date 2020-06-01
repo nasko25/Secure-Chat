@@ -24,3 +24,6 @@ in the home directory to start the server and then on a different terminal run
 cd client
 npm start 
 ```
+
+## How does it work?
+TODO
