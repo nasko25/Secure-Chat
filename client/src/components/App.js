@@ -11,28 +11,50 @@ import InvalidToken from "./InvalidToken.js"
 import './index.css'
 import forge from "node-forge"
 import io from 'socket.io-client';
+import crypto from 'crypto'
 
 
-export default function App() {
-  const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
+export default class App extends React.Component {
+  /*
+    This method is used to set information like connection token,
+    the encryption key that the parties agreed on (and maybe later the
+    public and private keys) for the connection initilized
+    by the class InitilizeConnection.
+  */
+  setConnectionInformation(data) {
+    this.connectionInformation = data;
+  }
 
-  const socket = io();
+  /*
+    Retrieve the connection information that was set in the
+    method above.
+  */
+  getConnectionInformation() {
+    return this.connectionInformation;
+  }
 
-  return (
-    <Router>
-      <Switch>
-        <Route exact path = "/">
-          <InitilizeConnectionWithRouter socket = {socket}/>
-        </Route>
-        <Route path = "/chat">
-          <MainView socket = {socket}/>
-        </Route>
-        <Route path = "/invalid_token">
-          <InvalidToken />
-        </Route>
-      </Switch>
-    </Router>
-  );
+  render() {
+    const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
+    const MainViewWithRouter = withRouter(MainView);
+
+    const socket = io();
+
+    return (
+      <Router>
+        <Switch>
+          <Route exact path = "/">
+            <InitilizeConnectionWithRouter socket = {socket} setParentLink = {this.setConnectionInformation.bind(this)} />
+          </Route>
+          <Route path = "/chat">
+            <MainViewWithRouter socket = {socket} getConnectionInformation = {this.getConnectionInformation.bind(this)}/>
+          </Route>
+          <Route path = "/invalid_token">
+            <InvalidToken />
+          </Route>
+        </Switch>
+      </Router>
+    );
+  }
 }
 
 class InitilizeConnection extends React.Component {
@@ -98,12 +120,45 @@ class InitilizeConnection extends React.Component {
           this.props.history.push(to)
         });
 
-    })
-    .catch(err => console.log(err));
+        socket.on("client2Information", (data) => {
+          this.setState({otherClientPublicKeyPem: data.publicKey});
+
+          // TODO make it a promise and cancel it on componentWillUnmount ? (can it lead to a memory leak?)
+          // generate the first part of the encryption key
+          crypto.randomBytes(24, (err, buffer) => {
+            if (err) {
+              console.log(err);
+            }
+
+            if (buffer) {
+              var key = buffer.toString('hex');
+              var publicKey = forge.pki.publicKeyFromPem(data.publicKey);
+
+              this.setState({encryptionKeyFirstHalf: key});
+
+              console.log("my (first) half:", key);
+
+              socket.emit("firstHalfKey", {
+                key: publicKey.encrypt(key),
+                token: token
+              });
+            }
+          });
+        });
+
+        socket.on("secondHalfKey", (data) => {
+          var key = this.state.priv.decrypt(data.key);
+
+          this.setState({encryptionKeySecondHalf: key});
+
+          console.log("second half received:", key);
+        });
+
+      })
+      .catch(err => console.log(err));
   }
 
   secondClientConnect = () => {
-    // TODO
 
     // document.getElementsByClassName("readyLink")[0].style.display = "none";
     // document.getElementById("load").style.display = "inline-block";
@@ -127,12 +182,23 @@ class InitilizeConnection extends React.Component {
         if (forge.pki.publicKeyFromPem(data.publicKey).verify(md.digest().bytes(), data.secret)) {
           // set the this.state.secret
           this.setState({secret: data.plainTextSecret});
+
+          // set the this.state.otherClientPublicKeyPem with the public key of client 1
+          this.setState({otherClientPublicKeyPem: data.publicKey});
         } else {           // redirect if the signed secret and plain secret do not match
           this.props.history.push("/connection_interrupted");
         }
       } catch(err) {
         this.props.history.push("/connection_interrupted");
       }
+    });
+
+    // receive the generated half of the key from the other client
+    socket.on("firstHalfKey", (data) => {
+      var key = this.state.priv.decrypt(data.key);
+
+      this.setState({encryptionKeyFirstHalf: key});
+      console.log("first half received:", key);
     });
   }
 
@@ -144,11 +210,35 @@ class InitilizeConnection extends React.Component {
 
     event.preventDefault();
 
-    socket.emit("client2Approve", {
-      token: token
+    // TODO make it a promise and cancel it on componentWillUnmount ? (can it lead to a memory leak?)
+    // generate a random encryption key
+    crypto.randomBytes(24, (err, buffer) => {
+      if (err) {
+        console.log(err);
+      }
+
+      if (buffer) {
+        var key = buffer.toString('hex');
+        var publicKey = forge.pki.publicKeyFromPem(this.state.otherClientPublicKeyPem)
+
+        socket.emit("secondHalfKey", {
+          key: publicKey.encrypt(key),
+          token: token
+        });
+
+        this.setState({encryptionKeySecondHalf: key});
+
+        socket.emit("client2Approve", {
+          token: token
+        });
+
+        console.log("my (second) half:", key);
+
+        // redirect the user to the chat
+        this.props.history.push(to);
+      }
     });
 
-    this.props.history.push(to);
   }
 
   componentDidMount() {
@@ -159,6 +249,8 @@ class InitilizeConnection extends React.Component {
     //   .promise
     //   .then(res => this.setState({ data: res.api }))
     //   .catch(err => console.log(err));
+
+    this.props.socket.open();
 
     let query = new URLSearchParams(this.props.location.search);
     const token = query.get("token");
@@ -202,6 +294,10 @@ class InitilizeConnection extends React.Component {
       .then(keypair => {
         this.setState({ priv: keypair.privateKey});
         this.setState({ pub: forge.pki.publicKeyToPem(keypair.publicKey)});
+
+        // if it is not the initiator, call the second client connected method
+        if (!this.state.initiator)
+          this.secondClientConnect();
       })
       .catch(err => console.log(err));
 
@@ -312,7 +408,6 @@ class InitilizeConnection extends React.Component {
         );
       }
 
-      this.secondClientConnect();
       box = (
         <div className="boxSecondClient">
           {secret}
@@ -337,6 +432,21 @@ class InitilizeConnection extends React.Component {
 
     if (this.state.generateRsaPromise)
       this.state.generateRsaPromise.cancel();
+
+    this.props.socket.close();
+
+    var fullKey = this.state.encryptionKeyFirstHalf + this.state.encryptionKeySecondHalf;
+
+    const query = new URLSearchParams(this.props.location.search);
+    const token = query.get("token");
+
+    var data = {
+      token: token,
+      key: fullKey
+    };
+
+    // pass the information about the connection to the parent component
+    this.props.setParentLink(data);
   }
 }
 

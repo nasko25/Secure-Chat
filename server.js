@@ -26,6 +26,9 @@ function ClientPair(client1, client2, secret) {
 
 // TODO null checks
 
+// TODO if a client gives a token that does not exist, close the socket (and maybe the other socket connected to it too?):
+// TODO if one socket in the client pair closes, close the other automatically?
+
 // TODO clear the tokens that have stayed for too long
 let tokens = {};
 
@@ -36,11 +39,11 @@ server.listen(port, () => console.log(`Server listening on port ${port}`));
 app.post("/verify_token", (req, res) => {
 	console.log(req.body);
 	let token = req.body.token;
-	if (!(token in tokens)) {
+	if (!(token in tokens) || tokens[token].connections >= 2) {
 		// TODO can also check if the number for the ClientPair connections for this token is < 2
 		res.status(400).send({message: "Invalid token"});
 		//res.send("Sorry the token is invalid.\nThis might be caused by an expired session or just by an invalid token provided.")
-	} else{
+	} else {
 		res.send({})
 	}
 });
@@ -138,6 +141,11 @@ io.on("connection", (socket) => {
 					plainTextSecret: clientPair.plainTextSecret
 				});
 
+				// send the client2 information to client1
+				clientPair.client1.socket.emit("client2Information", {
+					publicKey: clientPair.client2.publicKey
+				});
+
 			} else {
 				// There is already a connection between two parties established
 				// TODO might expand the functionallity so that more parties can join
@@ -158,6 +166,27 @@ io.on("connection", (socket) => {
 			// notify the other client that another client has connected
 			clientPair.client1.socket.emit("clientConnected");
 		}
+	});
+
+	// pass the received encrypted secrets to the other clients
+	socket.on("firstHalfKey", (data) => {
+		let token = data.token;
+
+		var clientPair = tokens[token];
+
+		console.log("first half send!")
+		clientPair.client2.socket.emit("firstHalfKey", {
+			key: data.key
+		});
+	});
+	socket.on("secondHalfKey", (data) => {
+		let token = data.token;
+
+		var clientPair = tokens[token];
+
+		clientPair.client1.socket.emit("secondHalfKey", {
+			key: data.key
+		});
 	});
 })
 
