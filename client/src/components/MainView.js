@@ -42,8 +42,16 @@ export default class MainView extends React.Component {
     if (!connectionInformation)
       this.props.history.push("/");
 
+    // reopen the closed socket
     var socket = this.props.socket;
     socket.open();
+
+    var data = this.props.getConnectionInformation();
+
+    this.setState({
+      key: data.key,
+      token: data.token
+    });
   }
 
   render() {
