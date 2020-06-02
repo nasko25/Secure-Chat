@@ -458,10 +458,18 @@ class InitilizeConnection extends React.Component {
       let connectBtn;
       // display the 'Connect' button only if the public key of the other client is set
       if (this.state.otherClientPublicKeyPem) {
+
+        // hide the "loading" animation as the public key of the other client was received
+        document.getElementById("load").style.display = "none";
+
         connectBtn = (
           <Link className="readyLink" to = "chat" onClick = {(event) => this.secondClientApprove({ pathname: `chat`}, event) }> Connect </Link>
         );
       } else {
+
+        // show the "loading" animation as the public key of the other client is still missing
+        document.getElementById("load").style.display = "inline-block";
+
         connectBtn = "";
       }
 
