@@ -308,7 +308,7 @@ class InitilizeConnection extends React.Component {
           this.props.history.push("/invalid_token");
         });
 
-        // this client was not the initiator and the token provided is indeed valid
+        // this client was not the initiator as there was a token provided
         this.setState({initiator: false});
     }
 
@@ -455,12 +455,21 @@ class InitilizeConnection extends React.Component {
           </div>
         );
       }
+      let connectBtn;
+      // display the 'Connect' button only if the public key of the other client is set
+      if (this.state.otherClientPublicKeyPem) {
+        connectBtn = (
+          <Link className="readyLink" to = "chat" onClick = {(event) => this.secondClientApprove({ pathname: `chat`}, event) }> Connect </Link>
+        );
+      } else {
+        connectBtn = "";
+      }
 
       box = (
         <div className="boxSecondClient">
           {secret}
           <div className="readyBtn">
-            <Link className="readyLink" to = "chat" onClick = {(event) => this.secondClientApprove({ pathname: `chat`}, event) }> Connect </Link>
+            {connectBtn}
             <div className="loader" id = "load"><div></div><div></div><div></div><div></div></div>
           </div>
         </div>
