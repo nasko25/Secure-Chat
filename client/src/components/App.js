@@ -13,8 +13,23 @@ import forge from "node-forge"
 import io from 'socket.io-client';
 import crypto from 'crypto'
 
+// TODO might put them in separate modules or one separate module
+const socket = io();
+
+const MainViewWithRouter = withRouter(MainView);                // TODO do the same for InitilizeConnection, when you put it in a separate module
 
 export default class App extends React.Component {
+  // constructor to set up the state
+  constructor(props) {
+    super(props);
+
+    const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
+
+    this.state = {
+      InitilizeConnectionWithRouter: InitilizeConnectionWithRouter
+    };
+  }
+
   /*
     This method is used to set information like connection token,
     the encryption key that the parties agreed on (and maybe later the
@@ -36,10 +51,7 @@ export default class App extends React.Component {
   // The App component manages all available paths and displays the appropriate components
   // TODO display a 404, when an unknown path is queried
   render() {
-    const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
-    const MainViewWithRouter = withRouter(MainView);
-
-    const socket = io();
+    const InitilizeConnectionWithRouter = this.state.InitilizeConnectionWithRouter;
 
     return (
       <Router>

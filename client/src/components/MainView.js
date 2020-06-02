@@ -4,6 +4,13 @@ import ComposeView from "./ComposeView.js"
 import "./index.css"
 
 export default class MainView extends React.Component {
+
+  // constructor to set up the state
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+
   /*
     The child component MessagesView will get access to this function, so that the child component can
     give access to its addMessageToView() method to the parent MainView.
@@ -35,23 +42,24 @@ export default class MainView extends React.Component {
     // Remove navigation prompt
     // window.onbeforeunload = null;
 
+    // get the connection information from the parent
     const connectionInformation = this.props.getConnectionInformation();
 
-    // TODO:
     // if connection information is not set, redirect the user to the homepage
     if (!connectionInformation)
       this.props.history.push("/");
 
-    // reopen the closed socket
-    var socket = this.props.socket;
-    socket.open();
+    else {
+      // reopen the closed socket
+      var socket = this.props.socket;
+      socket.open();
 
-    var data = this.props.getConnectionInformation();
-
-    this.setState({
-      key: data.key,
-      token: data.token
-    });
+      // set the connection properties to the component's state
+      this.setState({
+        key: connectionInformation.key,
+        token: connectionInformation.token
+      });
+    }
   }
 
   render() {
