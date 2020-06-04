@@ -69,6 +69,11 @@ export default class App extends React.Component {
       </Router>
     );
   }
+
+  componentWillUnmount() {
+    // close the socket
+    socket.close();
+  }
 }
 
 class InitilizeConnection extends React.Component {
@@ -293,8 +298,6 @@ class InitilizeConnection extends React.Component {
     //   .then(res => this.setState({ data: res.api }))
     //   .catch(err => console.log(err));
 
-    // open the socket (it might be closed by the componentWillUnmount)
-    this.props.socket.open();
 
     let query = new URLSearchParams(this.props.location.search);
     const token = query.get("token");
@@ -499,10 +502,12 @@ class InitilizeConnection extends React.Component {
     if (this.state.generateRsaPromise)
       this.state.generateRsaPromise.cancel();
 
-    // close the socket (it can later be opened again)
-    this.props.socket.close();
+    // unsubscribe the socket from any events it was previously listening for;
+    // this prevents it from changing the state of this component after the component is unmounted,
+    // thus preventing memeory leaks
+    this.props.socket.off();
 
-    //combine the two halves of the key
+    // combine the two halves of the key
     var fullKey = this.state.encryptionKeyFirstHalf + this.state.encryptionKeySecondHalf;
 
     const query = new URLSearchParams(this.props.location.search);

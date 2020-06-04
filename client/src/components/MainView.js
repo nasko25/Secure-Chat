@@ -8,7 +8,10 @@ export default class MainView extends React.Component {
   // constructor to set up the state
   constructor(props) {
     super(props);
-    this.state = {};
+    // set the socket to the component's state
+    this.state = {
+      socket: props.socket
+    };
   }
 
   /*
@@ -50,10 +53,6 @@ export default class MainView extends React.Component {
       this.props.history.push("/");
 
     else {
-      // reopen the closed socket
-      var socket = this.props.socket;
-      socket.open();
-
       // set the connection properties to the component's state
       this.setState({
         key: connectionInformation.key,
@@ -65,8 +64,8 @@ export default class MainView extends React.Component {
   render() {
     return (
       <div className = "mainView">
-        <MessagesView setParentReference = { this.addFunctionToState.bind(this) }/>
-        <ComposeView getFunctionFromState = { this.getFunctionFromState.bind(this) }/>
+        <MessagesView setParentReference = { this.addFunctionToState.bind(this) } encryptionKey = { this.state.key } token = { this.state.token } socket = { this.state.socket }/>
+        <ComposeView getFunctionFromState = { this.getFunctionFromState.bind(this) } encryptionKey = { this.state.key} token = {this.state.token} socket = { this.state.socket }/>
       </div>
     );
   };

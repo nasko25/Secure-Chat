@@ -102,6 +102,8 @@ code {
   width: 100vw;
 }
 
+/* TODO code duplication */
+
 .box {
   margin: 0 auto;
   margin-top: 2em;
@@ -110,6 +112,8 @@ code {
   height: 20%;
   min-height: 150px;
   min-width: 200px;
+  max-height: 170px;
+  max-width: 400px;
 }
 
 .boxSecondClient {
@@ -120,6 +124,8 @@ code {
   min-height: 150px;
   min-width: 200px;
   padding: 1em 2em;
+  max-height: 170px;
+  max-width: 400px;
 }
 
 .secretDescription {

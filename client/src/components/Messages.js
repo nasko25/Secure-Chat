@@ -39,10 +39,25 @@ export default class MessagesView extends React.Component {
     props.setParentReference(this.addMessageToView);
   }
 
+  /*
+    Adds a messageToAdd to the view.
+    Note that the messageToAdd is expected to be an object with the following format:
+
+    {
+      "messageId" : {
+        message: "some message",
+        mine: true/false,
+        time: *a Date object indicating when the message was created*
+      }
+    }
+
+    "messageId" is indeed a string used as the key for the actual message that will be added to the
+    messages view.
+  */
   addMessageToView(messageToAdd) {
     var event = new CustomEvent("newMessage", { detail: { messageToAdd: messageToAdd }});
 
-    // trigger the event
+    // trigger the "newMessage" event
     document.dispatchEvent(event);
   }
 
@@ -99,6 +114,21 @@ export default class MessagesView extends React.Component {
         .bind(this),
         3000
     );
+
+    // get the socket from props
+    var socket = this.props.socket;
+
+    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DECRYPT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // if the socket was passed from the parent component
+    if (socket) {
+      // handle received messages
+      socket.on("message", (data) => {
+        // add the message received from the server to the view
+        this.addMessageToView({
+          "messageId": data.message
+        });
+      });
+    }
   }
 
   render() {

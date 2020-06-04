@@ -250,7 +250,59 @@ io.on("connection", (socket) => {
 			key: data.key
 		});
 	});
-})
+
+	// a message was received
+	socket.on("message", (data) => {
+		var sender = socket.id;
+
+		var token = data.token;
+		var clientPair = tokens[token];
+
+		var message = data.message;
+
+		/* TODO checking the socket IDs looks like not-so-good practice
+		maybe create a room with the token? https://socket.io/docs/rooms-and-namespaces#Rooms
+		https://socket.io/docs/emit-cheatsheet/  */
+
+		// set the "mine" property of the message to false, indicating that the other client sent the message
+		//console.log(message)
+		message.mine = false;
+
+		// TODO i could also implement something checking the validity of message.time?
+		/* TODO
+			check if the message has a valid structure
+			OR better yet create a new message object
+			with the approprite/expected fields from the message object
+			(after validating them). token should be valid!
+		*/
+		// TODO handle socket changes on connection resets!
+
+		// the clients must have their sockets set 			// TODO make the first two checks a separate if as it is the same in the else if
+		if (clientPair.client1.socket && clientPair.client2.socket && clientPair.client1.socket.id === sender) {		// did client 1 send the message?
+			// send the message to client 2
+			clientPair.client2.socket.emit("message", {
+				message: message
+			});
+			console.log("message sent by client 1", sender, "to", clientPair.client2.socket.id)
+		}
+		// did client 2 send the message? 
+		else if (clientPair.client1.socket && clientPair.client2.socket && clientPair.client2.socket.id === sender) {
+			// send the message to client 1
+			clientPair.client1.socket.emit("message", {
+				message: message
+			});
+			console.log("message sent by client 2", sender, "to", clientPair.client1.socket.id)
+		}
+		// wrong socket id !
+		else {
+			// TODO add proper error logging!
+			console.log("WRONG SOCKET ID!");
+			console.log("socket id:", socket.id);
+			console.log("is 1 connected:", clientPair.client1.socket.connected);
+			console.log("is 2 connected:", clientPair.client2.socket.connected);
+		}
+	});
+});
 
 /*
 		if (!(token in tokens)) {

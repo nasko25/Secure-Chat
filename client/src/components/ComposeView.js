@@ -17,7 +17,20 @@ export default class ComposeView extends React.Component {
     };
 
     if(event.key === "Enter" || event.type === "click") {
+      // get the socket from the props
+      var socket = this.props.socket;
+
+      // send the message to the server, so the server can transmit it to the other client
+      // TODO !!!!!!!!!!!!!!!!!!!!!!!!! ENCRYPT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      socket.emit("message", {
+        message: messageToAdd["messageId"],
+        token: this.props.token
+      });
+
+
+      // add the message to the view
       addMessageToView(messageToAdd);
+
       // clear the input
       document.getElementsByClassName("input")[0].value = "";
 
