@@ -121,10 +121,9 @@ code {
   margin-top: 2em;
   width: 20%;
   background: #16181d;
-  min-height: 150px;
+  min-height: 80px;
   min-width: 200px;
   padding: 1em 2em;
-  max-height: 170px;
   max-width: 400px;
 }
 
