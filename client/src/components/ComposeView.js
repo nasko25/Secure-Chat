@@ -1,4 +1,5 @@
 import React from 'react';
+import forge from "node-forge";
 
 export default class ComposeView extends React.Component {
   sendMessage = (event) => {
@@ -20,13 +21,28 @@ export default class ComposeView extends React.Component {
       // get the socket from the props
       var socket = this.props.socket;
 
-      // send the message to the server, so the server can transmit it to the other client
-      // TODO !!!!!!!!!!!!!!!!!!!!!!!!! ENCRYPT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+      // get the encryption key and the iv from the parameters passed from the parent component to encrypt the message to the other client
+      // the encryption key was converted to a hex string representation, so now it should be converted to a byte representation
+      var key = forge.util.hexToBytes(this.props.encryptionKey); console.log("key length:",key.length, key, this.props.encryptionKey)
+      var iv = this.props.iv;
+
+      // encrypt the key
+      var cipher = forge.cipher.createCipher('AES-CBC', key);
+      cipher.start({iv: iv});
+      var unencrypted = messageToAdd["messageId"].message
+      cipher.update(forge.util.createBuffer(unencrypted));
+      cipher.finish();
+      var encrypted = cipher.output;
+      messageToAdd["messageId"].message = encrypted.toHex();
+      // send the encrypted message to the server, so the server can transmit it to the other client
       socket.emit("message", {
         message: messageToAdd["messageId"],
         token: this.props.token
       });
 
+      // set the message to plaintext again so it can be displayed in the user's browser
+      messageToAdd["messageId"].message = unencrypted;
 
       // add the message to the view
       addMessageToView(messageToAdd);

@@ -56,7 +56,8 @@ export default class MainView extends React.Component {
       // set the connection properties to the component's state
       this.setState({
         key: connectionInformation.key,
-        token: connectionInformation.token
+        token: connectionInformation.token,
+        iv: connectionInformation.iv
       });
     }
   }
@@ -64,8 +65,8 @@ export default class MainView extends React.Component {
   render() {
     return (
       <div className = "mainView">
-        <MessagesView setParentReference = { this.addFunctionToState.bind(this) } encryptionKey = { this.state.key } token = { this.state.token } socket = { this.state.socket }/>
-        <ComposeView getFunctionFromState = { this.getFunctionFromState.bind(this) } encryptionKey = { this.state.key} token = {this.state.token} socket = { this.state.socket }/>
+        <MessagesView setParentReference = { this.addFunctionToState.bind(this) } encryptionKey = { this.state.key } token = { this.state.token } socket = { this.state.socket } iv = {this.state.iv}/>
+        <ComposeView getFunctionFromState = { this.getFunctionFromState.bind(this) } encryptionKey = { this.state.key} token = {this.state.token} socket = { this.state.socket } iv = {this.state.iv}/>
       </div>
     );
   };

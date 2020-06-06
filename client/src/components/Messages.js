@@ -1,4 +1,5 @@
 import React from 'react';
+import forge from "node-forge";
 
 /*
  * move the state to the parent MainView to be able to pass a addMessageToView() function
@@ -118,15 +119,32 @@ export default class MessagesView extends React.Component {
     // get the socket from props
     var socket = this.props.socket;
 
-    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DECRYPT !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // if the socket was passed from the parent component
     if (socket) {
       // handle received messages
       socket.on("message", (data) => {
-        // add the message received from the server to the view
-        this.addMessageToView({
-          "messageId": data.message
-        });
+        // get the encryption key
+        var encryptionKey = this.props.encryptionKey;
+        // if the encryption key was set
+        if (encryptionKey) {
+          // get the encryption key and the iv from the parameters passed from the parent component to encrypt the message to the other client
+          // the encryption key was converted to a hex string representation, so now it should be converted to a byte representation
+          var key = forge.util.hexToBytes(encryptionKey);
+          var iv = this.props.iv;
+
+          // get the byte representation of the message from its receieved hex representation
+          var encrypted = data.message.message;
+          // decipher the message
+          var decipher = forge.cipher.createDecipher('AES-CBC', key);
+          decipher.start({iv: iv});console.log(encrypted)
+          decipher.update(forge.util.createBuffer(forge.util.hexToBytes(encrypted)));
+          var result = decipher.finish();console.log(decipher.output.data)
+          data.message.message = decipher.output.data;
+          // add the message received from the server to the view
+          this.addMessageToView({
+            "messageId": data.message
+          });
+        }
       });
     }
   }

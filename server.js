@@ -235,7 +235,8 @@ io.on("connection", (socket) => {
 		console.log("first half send!")
 		// just forward the encrypted key to the second client
 		clientPair.client2.socket.emit("firstHalfKey", {
-			key: data.key
+			key: data.key,
+			iv: data.iv
 		});
 	});
 
@@ -247,7 +248,8 @@ io.on("connection", (socket) => {
 		var clientPair = tokens[token];
 
 		clientPair.client1.socket.emit("secondHalfKey", {
-			key: data.key
+			key: data.key,
+			iv: data.iv
 		});
 	});
 

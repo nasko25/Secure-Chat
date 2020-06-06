@@ -157,25 +157,38 @@ class InitilizeConnection extends React.Component {
 
           // TODO make it a promise and cancel it on componentWillUnmount ? (can it lead to a memory leak?)
           // generate the first part of the encryption key
-          crypto.randomBytes(24, (err, buffer) => {
+          crypto.randomBytes(16, (err, buffer) => {
             if (err) {
               console.log(err);
             }
 
+            // TODO ? forge can generate a 'password' based key:
+            /* alternatively, generate a password-based 16-byte key
+            var salt = forge.random.getBytesSync(128);
+            var key = forge.pkcs5.pbkdf2('password', salt, numIterations, 16);
+            */
+            // ^ Taken from the documentation
             if (buffer) {
               // convert it to a hex representation
               var key = buffer.toString('hex');
               var publicKey = forge.pki.publicKeyFromPem(data.publicKey);
 
-              // save it to the state variable
-              this.setState({encryptionKeyFirstHalf: key});
-
               console.log("my (first) half:", key);
 
-              // send the encrypted first part of the key to the server
+              // generate the first half of an iv
+              var iv = forge.random.getBytesSync(8).toString("hex");
+
+              // save the key and iv to the state variable
+              this.setState({
+                encryptionKeyFirstHalf: key,
+                ivFirstHalf: iv
+              });
+
+              // send the encrypted first part of the key and iv to the server
               socket.emit("firstHalfKey", {
                 key: publicKey.encrypt(key),
-                token: token
+                token: token,
+                iv: iv
               });
             }
           });
@@ -185,9 +198,13 @@ class InitilizeConnection extends React.Component {
         socket.on("secondHalfKey", (data) => {
           // decrypt the key using your private key
           var key = this.state.priv.decrypt(data.key);
+          var iv = data.iv;
 
-          // save the second part of the encryption key to your state
-          this.setState({encryptionKeySecondHalf: key});
+          // save the second part of the encryption key and the iv to the component's state
+          this.setState({
+            encryptionKeySecondHalf: key,
+            ivSecondHalf: iv
+          });
 
           console.log("second half received:", key);
         });
@@ -239,8 +256,12 @@ class InitilizeConnection extends React.Component {
     // receive the generated first half of the key from the other client
     socket.on("firstHalfKey", (data) => {
       var key = this.state.priv.decrypt(data.key);
+      var iv = data.iv;
 
-      this.setState({encryptionKeyFirstHalf: key});
+      this.setState({
+        encryptionKeyFirstHalf: key,
+        ivFirstHalf: iv
+      });
       console.log("first half received:", key);
     });
   }
@@ -257,7 +278,7 @@ class InitilizeConnection extends React.Component {
 
     // TODO make it a promise and cancel it on componentWillUnmount ? (can it lead to a memory leak?)
     // generate a random encryption key
-    crypto.randomBytes(24, (err, buffer) => {
+    crypto.randomBytes(16, (err, buffer) => {
       if (err) {
         console.log(err);
       }
@@ -267,13 +288,20 @@ class InitilizeConnection extends React.Component {
         var key = buffer.toString('hex');
         var publicKey = forge.pki.publicKeyFromPem(this.state.otherClientPublicKeyPem)
 
+        // generate the second half of the iv
+        var iv = forge.random.getBytesSync(8).toString("hex");
+
         // send your public key to the client and save it in the state
         socket.emit("secondHalfKey", {
           key: publicKey.encrypt(key),
-          token: token
+          token: token,
+          iv: iv
         });
 
-        this.setState({encryptionKeySecondHalf: key});
+        this.setState({
+          encryptionKeySecondHalf: key,
+          ivSecondHalf: iv
+        });
 
         // notify the user that you approve the connection
         socket.emit("client2Approve", {
@@ -459,8 +487,8 @@ class InitilizeConnection extends React.Component {
         );
       }
       let connectBtn;
-      // display the 'Connect' button only if the public key of the other client is set
-      if (this.state.otherClientPublicKeyPem) {
+      // display the 'Connect' button only if the public key of the other client and the first part of the encryption key are set
+      if (this.state.otherClientPublicKeyPem && this.state.encryptionKeyFirstHalf) {
 
         // hide the "loading" animation as the public key of the other client was received
         document.getElementById("load").style.display = "none";
@@ -510,12 +538,16 @@ class InitilizeConnection extends React.Component {
     // combine the two halves of the key
     var fullKey = this.state.encryptionKeyFirstHalf + this.state.encryptionKeySecondHalf;
 
+    // combine the two halves of the iv
+    var fullIV = this.state.ivFirstHalf + this.state.ivSecondHalf;
+
     const query = new URLSearchParams(this.props.location.search);
     const token = query.get("token");
 
     var data = {
       token: token,
-      key: fullKey
+      key: fullKey,
+      iv: fullIV
     };
 
     // pass the information about the connection to the parent component
