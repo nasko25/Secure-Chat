@@ -3,11 +3,13 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
+  Redirect,
   Link,
   withRouter
 } from "react-router-dom";
 import MainView from "./MainView.js"
 import InvalidToken from "./InvalidToken.js"
+import NotFound from "./NotFound.js"
 import './index.css'
 import forge from "node-forge"
 import io from 'socket.io-client';
@@ -49,7 +51,6 @@ export default class App extends React.Component {
   }
 
   // The App component manages all available paths and displays the appropriate components
-  // TODO display a 404, when an unknown path is queried
   render() {
     const InitilizeConnectionWithRouter = this.state.InitilizeConnectionWithRouter;
 
@@ -65,6 +66,11 @@ export default class App extends React.Component {
           <Route path = "/invalid_token">
             <InvalidToken />
           </Route>
+          <Route path = "/not_found">
+            <NotFound />
+          </Route>
+          { /* Default path, if the path does not match anything from the specified above */ }
+          <Redirect to = "/not_found" />
         </Switch>
       </Router>
     );

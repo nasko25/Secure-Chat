@@ -138,7 +138,11 @@ export default class MessagesView extends React.Component {
           var decipher = forge.cipher.createDecipher('AES-CBC', key);
           decipher.start({iv: iv});console.log(encrypted)
           decipher.update(forge.util.createBuffer(forge.util.hexToBytes(encrypted)));
-          var result = decipher.finish();console.log(decipher.output.data)
+          var result = decipher.finish();
+          // if there was a problem with the decrypting
+          if (!result) {
+            console.error("There was an error with decrypting");
+          }
           data.message.message = decipher.output.data;
           // add the message received from the server to the view
           this.addMessageToView({
