@@ -5,6 +5,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* overflow on mobile devices should be hidden as it prevents the
+  default "bouncing/stretching" behavior when scrolling */
+  overflow: hidden;
 }
 
 code {
@@ -16,6 +20,7 @@ code {
   background-color: #282c34;
   color: white;
   min-height: 100vh;
+  overflow: hidden;
 }
 
 .compose {
@@ -69,6 +74,16 @@ code {
 .messagesView {
   overflow: auto;
   height: calc(100vh - 47px);
+}
+
+/* this accounts for mobile devices's menu bar
+  tested on iOS safari
+*/
+@media only screen and (max-device-width: 768px) {
+  .messagesView {
+    margin-top: 120px;
+    height: calc(100vh - 47px - 125px);
+  }
 }
 
 .messageContiner {

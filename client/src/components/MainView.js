@@ -64,7 +64,7 @@ export default class MainView extends React.Component {
 
   render() {
     return (
-      <div className = "mainView">
+      <div className = "mainView"> <meta name = "viewport" content = "width=device-width user-scalable=no"/> { /* a meta tag that prevents automatic zooming on mobile when users start typing a message */ }
         <MessagesView setParentReference = { this.addFunctionToState.bind(this) } encryptionKey = { this.state.key } token = { this.state.token } socket = { this.state.socket } iv = {this.state.iv}/>
         <ComposeView getFunctionFromState = { this.getFunctionFromState.bind(this) } encryptionKey = { this.state.key} token = {this.state.token} socket = { this.state.socket } iv = {this.state.iv}/>
       </div>

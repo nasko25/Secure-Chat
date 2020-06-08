@@ -150,6 +150,7 @@ io.on("connection", (socket) => {
 	socket.on("clientConnected", (data) => {
 		// get the token and the public key of the client
 		let token = data.token;
+		console.log(token)
 		let publicKey = data.publicKey;
 
 		// if the token is not in the tokens object, it is not valid, so send "invalidToken" message
