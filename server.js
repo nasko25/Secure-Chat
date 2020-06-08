@@ -25,6 +25,8 @@ const forge = require("node-forge");
 function Client(publicKey, socket) {
 	this.publicKey = publicKey;
 	this.socket = socket;
+	// initilize a buffer that will buffer incoming messages when the client is offline
+	this.buffer = [];
 }
 
 /*
@@ -57,7 +59,7 @@ function ClientPair(client1, client2, secret) {
 // TODO if a client gives a token that does not exist, close the socket (and maybe the other socket connected to it too?):
 // TODO if one socket in the client pair closes, close the other automatically?
 
-// TODO clear the tokens that have stayed for too long
+// TODO clear the tokens that have stayed for too long; garbage collection
 /*
 	This object keeps track of the tokens and clientPair connections.
 	The tokens are the keys and their associated clientPair objects/functions are the values of the tokens object.
@@ -262,6 +264,10 @@ io.on("connection", (socket) => {
 
 		var message = data.message;
 
+		// initilize buffers that are used to store messages while users are offline
+		var client1Buffer = clientPair.client1.buffer;
+		var client2Buffer = clientPair.client2.buffer;
+
 		/* TODO checking the socket IDs looks like not-so-good practice
 		maybe create a room with the token? https://socket.io/docs/rooms-and-namespaces#Rooms
 		https://socket.io/docs/emit-cheatsheet/  */
@@ -283,19 +289,33 @@ io.on("connection", (socket) => {
 		if (clientPair.client1.socket && clientPair.client2.socket) {
 			// did client 1 send the message?
 			if (clientPair.client1.socket.id === sender) {
-				// send the message to client 2
-				clientPair.client2.socket.emit("message", {
-					message: message
-				});
-				console.log("message sent by client 1", sender, "to", clientPair.client2.socket.id)
+				// if client 2 is connected
+				if (clientPair.client2.socket.connected) {
+					// send the message to client 2
+					clientPair.client2.socket.emit("message", {
+						message: message
+					});
+					console.log("message sent by client 1", sender, "to", clientPair.client2.socket.id);
+				}	// otherwise put the message in client 2's buffer
+				else {
+					console.log("message buffered");
+					client2Buffer.push(message);
+				}
 			}
 			// did client 2 send the message?
 			else if (clientPair.client2.socket.id === sender) {
-				// send the message to client 1
-				clientPair.client1.socket.emit("message", {
-					message: message
-				});
-				console.log("message sent by client 2", sender, "to", clientPair.client1.socket.id)
+				// if client 1 is connected
+				if (clientPair.client1.socket.connected) {
+					// send the message to client 1
+					clientPair.client1.socket.emit("message", {
+						message: message
+					});
+					console.log("message sent by client 2", sender, "to", clientPair.client1.socket.id);
+				} // otherwise put the message in client 1's buffer
+				else {
+					console.log("message buffered");
+					client1Buffer.push(message);
+				}
 			}
 			// wrong socket id !
 			else {
@@ -309,12 +329,38 @@ io.on("connection", (socket) => {
 					their sockets naturally close and a new one is opened;
 					this change in sockets needs to be handled.
 				*/
+				// TODO buffers should be sent when a client connects, not when they send a message
+				// (maybe ping the server every once in a while and then update the sockets as well
+				// and send the buffers if neccessary)
+
 				// if socket 1 is not connected, set the sending socket to be client 1's new socket
 				if (!clientPair.client1.socket.connected) {
 					clientPair.client1.socket = socket;
+					// while client 1's buffer is not empty, send the messages in that buffer to client 1
+					while (client1Buffer.length !== 0) {
+						let bufferedMessage = client1Buffer.shift();
+						clientPair.client1.socket.emit("message", {
+							message: bufferedMessage
+						});
+					}
+					// also send the message to client 2
+					clientPair.client2.socket.emit("message", {
+						message: message
+					});
 				} // if client 2 is not connected, set the sending socket to be client 2's new socket
 				else if (!clientPair.client2.socket.connected) {
 					clientPair.client2.socket = socket;
+					// while client 2's buffer is not empty, send the messages in that buffer to client 2
+					while (client2Buffer.length !== 0) {
+						let bufferedMessage = client2Buffer.shift();
+						clientPair.client2.socket.emit("message", {
+							message: bufferedMessage
+						});
+					}
+					// also send the message to client 1
+					clientPair.client1.socket.emit("message", {
+						message: message
+					});
 				}
 			}
 		}
