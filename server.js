@@ -255,6 +255,48 @@ io.on("connection", (socket) => {
 		});
 	});
 
+	// ping the server to update the socket and send any messages that are stored in the client buffers
+	socket.on("pingServer", (data) => {
+		var token = data.token;
+
+		var sender = socket.id;
+
+		var clientPair = tokens[token];
+		if (!clientPair) {
+			return;
+		}
+		var client1 = clientPair.client1;
+		var client2 = clientPair.client2;
+
+		// get the buffers that are used to store messages while users are offline
+		var client1Buffer = client1.buffer;
+		var client2Buffer = client2.buffer;
+
+		// if the socket of one of the clients was not set or is no longer connected,
+		// and the other client was not the sender,
+		// set the empty socket to be the sender's socket
+		if ((!client1.socket || !client1.socket.connected) && client2.socket.id !== sender) {
+			client1.socket = socket;
+			// while client 1's buffer is not empty, send the messages in that buffer to client 1
+			while (client1Buffer.length !== 0) {
+				let bufferedMessage = client1Buffer.shift();
+				client1.socket.emit("message", {
+					message: bufferedMessage
+				});
+			}
+		}
+		else if ((!client2.socket || !client2.socket.connected) && client1.socket.id !== sender) {
+			client2.socket = socket;
+			// while client 2's buffer is not empty, send the messages in that buffer to client 2
+			while (client2Buffer.length !== 0) {
+				let bufferedMessage = client2Buffer.shift();
+				client2.socket.emit("message", {
+					message: bufferedMessage
+				});
+			}
+		}
+	});
+
 	// a message was received
 	socket.on("message", (data) => {
 		var sender = socket.id;
@@ -264,7 +306,7 @@ io.on("connection", (socket) => {
 
 		var message = data.message;
 
-		// initilize buffers that are used to store messages while users are offline
+		// get the buffers that are used to store messages while users are offline
 		var client1Buffer = clientPair.client1.buffer;
 		var client2Buffer = clientPair.client2.buffer;
 
@@ -283,7 +325,6 @@ io.on("connection", (socket) => {
 			with the approprite/expected fields from the message object
 			(after validating them). token should be valid!
 		*/
-		// TODO buffer messages when clients are not connected
 
 		// the clients must have their sockets set
 		if (clientPair.client1.socket && clientPair.client2.socket) {
@@ -326,12 +367,15 @@ io.on("connection", (socket) => {
 				console.log("is 2 connected:", clientPair.client2.socket.connected);
 				/* handle socket changes
 					when users exit the browser, or their network connection is reset,
-					their sockets naturally close and a new one is opened;
+					their sockets naturally close and a new one is opened
+					(implemented entirely by socket.io);
 					this change in sockets needs to be handled.
 				*/
 				// TODO buffers should be sent when a client connects, not when they send a message
 				// (maybe ping the server every once in a while and then update the sockets as well
-				// and send the buffers if neccessary)
+				// and send the buffers if neccessary); create an abstraction method for sockets ( .send() ) that checks if
+				// a socket is connected and if it is not, adds the message to the respective buffer
+				// (to prevent code duplication)
 
 				// if socket 1 is not connected, set the sending socket to be client 1's new socket
 				if (!clientPair.client1.socket.connected) {

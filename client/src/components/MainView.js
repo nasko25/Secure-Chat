@@ -59,6 +59,20 @@ export default class MainView extends React.Component {
         token: connectionInformation.token,
         iv: connectionInformation.iv
       });
+      // set an interval to ping the server
+      // in this way the server can keep track of
+      // users that are disconnected and can update their sockets
+      var pingServer = setInterval(() => {
+        var socket = this.state.socket;
+        socket.emit("pingServer", {
+          token: connectionInformation.token
+        });
+      }, 2000);
+      // TODO it is probably better to call this.setState() only once in the whole method
+      // TODO now if a user disconnects during the initial handshake, the connection cannot be established
+      this.setState({
+        pingServerInterval: pingServer
+      });
     }
   }
 
@@ -70,4 +84,8 @@ export default class MainView extends React.Component {
       </div>
     );
   };
+
+  componentWillUnmount() {
+    clearInterval(this.state.pingServerInterval);
+  }
 }
