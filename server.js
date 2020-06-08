@@ -157,7 +157,6 @@ io.on("connection", (socket) => {
 			socket.emit("invalidToken");
 		} else if (token != null && publicKey != null) {				// if the token and the public key are not null/undefined:
 			// TODO secret max length; what if empty?
-			// TODO display the secret to the client to verify if the public key has verified it
 			var clientPair = tokens[token];
 
 			// if it is client1's connection

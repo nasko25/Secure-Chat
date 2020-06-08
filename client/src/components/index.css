@@ -15,7 +15,7 @@ code {
 .mainView {
   background-color: #282c34;
   color: white;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .compose {
@@ -99,7 +99,7 @@ code {
   padding: 0;
   margin: 0;
   position: absolute;
-  width: 100vw;
+  width: 100%;
 }
 
 /* TODO code duplication */
@@ -125,6 +125,7 @@ code {
   min-width: 200px;
   padding: 1em 2em;
   max-width: 400px;
+  word-wrap: break-word;
 }
 
 .secretDescription {
@@ -280,4 +281,30 @@ div.readyLink {
 
 .goBackLink {
   color: #aba0ba;
+}
+
+/* ========================== scroll bar =================================== */
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #282C34;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #3A3E45;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #5A5A5C;
+}
+
+/* Handle on click */
+::-webkit-scrollbar-thumb:active {
+  background: #1E1F23;
 }
