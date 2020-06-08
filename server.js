@@ -277,31 +277,49 @@ io.on("connection", (socket) => {
 			with the approprite/expected fields from the message object
 			(after validating them). token should be valid!
 		*/
-		// TODO handle socket changes on connection resets!
+		// TODO buffer messages when clients are not connected
 
-		// the clients must have their sockets set 			// TODO make the first two checks a separate if as it is the same in the else if
-		if (clientPair.client1.socket && clientPair.client2.socket && clientPair.client1.socket.id === sender) {		// did client 1 send the message?
-			// send the message to client 2
-			clientPair.client2.socket.emit("message", {
-				message: message
-			});
-			console.log("message sent by client 1", sender, "to", clientPair.client2.socket.id)
+		// the clients must have their sockets set
+		if (clientPair.client1.socket && clientPair.client2.socket) {
+			// did client 1 send the message?
+			if (clientPair.client1.socket.id === sender) {
+				// send the message to client 2
+				clientPair.client2.socket.emit("message", {
+					message: message
+				});
+				console.log("message sent by client 1", sender, "to", clientPair.client2.socket.id)
+			}
+			// did client 2 send the message?
+			else if (clientPair.client2.socket.id === sender) {
+				// send the message to client 1
+				clientPair.client1.socket.emit("message", {
+					message: message
+				});
+				console.log("message sent by client 2", sender, "to", clientPair.client1.socket.id)
+			}
+			// wrong socket id !
+			else {
+				// TODO add proper error logging!
+				console.log("WRONG SOCKET ID!");
+				console.log("socket id:", socket.id);
+				console.log("is 1 connected:", clientPair.client1.socket.connected);
+				console.log("is 2 connected:", clientPair.client2.socket.connected);
+				/* handle socket changes
+					when users exit the browser, or their network connection is reset,
+					their sockets naturally close and a new one is opened;
+					this change in sockets needs to be handled.
+				*/
+				// if socket 1 is not connected, set the sending socket to be client 1's new socket
+				if (!clientPair.client1.socket.connected) {
+					clientPair.client1.socket = socket;
+				} // if client 2 is not connected, set the sending socket to be client 2's new socket
+				else if (!clientPair.client2.socket.connected) {
+					clientPair.client2.socket = socket;
+				}
+			}
 		}
-		// did client 2 send the message? 
-		else if (clientPair.client1.socket && clientPair.client2.socket && clientPair.client2.socket.id === sender) {
-			// send the message to client 1
-			clientPair.client1.socket.emit("message", {
-				message: message
-			});
-			console.log("message sent by client 2", sender, "to", clientPair.client1.socket.id)
-		}
-		// wrong socket id !
 		else {
-			// TODO add proper error logging!
-			console.log("WRONG SOCKET ID!");
-			console.log("socket id:", socket.id);
-			console.log("is 1 connected:", clientPair.client1.socket.connected);
-			console.log("is 2 connected:", clientPair.client2.socket.connected);
+			console.log("socket was not set correctly:", clientPair.client1.socket, clientPair.client2.socket);
 		}
 	});
 });
