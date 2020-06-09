@@ -25,7 +25,13 @@ const forge = require("node-forge");
 function Client(publicKey, socket) {
 	this.publicKey = publicKey;
 	this.socket = socket;
-	// initilize a buffer that will buffer incoming messages when the client is offline
+	/* Initilize a buffer that will buffer incoming messages when the client is offline
+
+		The buffer now contains objects of data that will be send through a web socket.
+		For example: [{ message: "asdf" }], the object { message: "asdf" } will be send though a socket like:
+			socket.emit("eventName", { message: "asdf" });
+	*/
+	// TODO buffer should also include eventType
 	this.buffer = [];
 }
 
@@ -277,23 +283,15 @@ io.on("connection", (socket) => {
 		// set the empty socket to be the sender's socket
 		if ((!client1.socket || !client1.socket.connected) && client2.socket.id !== sender) {
 			client1.socket = socket;
+
 			// while client 1's buffer is not empty, send the messages in that buffer to client 1
-			while (client1Buffer.length !== 0) {
-				let bufferedMessage = client1Buffer.shift();
-				client1.socket.emit("message", {
-					message: bufferedMessage
-				});
-			}
+			sendBufferToClient(socket, "message", client1Buffer);
 		}
 		else if ((!client2.socket || !client2.socket.connected) && client1.socket.id !== sender) {
 			client2.socket = socket;
+
 			// while client 2's buffer is not empty, send the messages in that buffer to client 2
-			while (client2Buffer.length !== 0) {
-				let bufferedMessage = client2Buffer.shift();
-				client2.socket.emit("message", {
-					message: bufferedMessage
-				});
-			}
+			sendBufferToClient(socket, "message", client2Buffer);
 		}
 	});
 
@@ -340,7 +338,9 @@ io.on("connection", (socket) => {
 				}	// otherwise put the message in client 2's buffer
 				else {
 					console.log("message buffered");
-					client2Buffer.push(message);
+					client2Buffer.push({
+						message: message
+					});
 				}
 			}
 			// did client 2 send the message?
@@ -355,7 +355,9 @@ io.on("connection", (socket) => {
 				} // otherwise put the message in client 1's buffer
 				else {
 					console.log("message buffered");
-					client1Buffer.push(message);
+					client1Buffer.push({
+						message: message
+					});
 				}
 			}
 			// wrong socket id !
@@ -380,13 +382,9 @@ io.on("connection", (socket) => {
 				// if socket 1 is not connected, set the sending socket to be client 1's new socket
 				if (!clientPair.client1.socket.connected) {
 					clientPair.client1.socket = socket;
+
 					// while client 1's buffer is not empty, send the messages in that buffer to client 1
-					while (client1Buffer.length !== 0) {
-						let bufferedMessage = client1Buffer.shift();
-						clientPair.client1.socket.emit("message", {
-							message: bufferedMessage
-						});
-					}
+					sendBufferToClient(socket, "message", client1Buffer);
 					// also send the message to client 2
 					clientPair.client2.socket.emit("message", {
 						message: message
@@ -394,13 +392,9 @@ io.on("connection", (socket) => {
 				} // if client 2 is not connected, set the sending socket to be client 2's new socket
 				else if (!clientPair.client2.socket.connected) {
 					clientPair.client2.socket = socket;
+
 					// while client 2's buffer is not empty, send the messages in that buffer to client 2
-					while (client2Buffer.length !== 0) {
-						let bufferedMessage = client2Buffer.shift();
-						clientPair.client2.socket.emit("message", {
-							message: bufferedMessage
-						});
-					}
+					sendBufferToClient(socket, "message", client2Buffer);
 					// also send the message to client 1
 					clientPair.client1.socket.emit("message", {
 						message: message
@@ -428,3 +422,15 @@ io.on("connection", (socket) => {
 		}
 
 */
+/* An abstraction layer that sends the specified buffer to
+	the specified socket.
+	This method prevents some code duplication.
+
+	* the eventName is the name of the event used by socket.io to transmit the message
+*/
+function sendBufferToClient(socket, eventName, buffer) {
+	while (buffer.length !== 0) {
+		let bufferedMessage = buffer.shift();
+		socket.emit(eventName, bufferedMessage);
+	}
+}
