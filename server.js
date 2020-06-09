@@ -204,10 +204,21 @@ io.on("connection", (socket) => {
 					plainTextSecret: clientPair.plainTextSecret
 				});
 
-				// send the client2 information to client1
-				clientPair.client1.socket.emit("client2Information", {
-					publicKey: clientPair.client2.publicKey
-				});
+				// if client 1 is still connected
+				if (clientPair.client1.socket.connected) {
+					// send the client2 information to client1
+					clientPair.client1.socket.emit("client2Information", {
+						publicKey: clientPair.client2.publicKey
+					});
+				} // otherwise buffer the information that needs to be sent
+				else {
+					clientPair.client1.buffer.push([
+						"client2Information",
+						{
+							publicKey: clientPair.client2.publicKey
+						}
+					]);
+				}
 
 			} else {
 				// There is already a connection between two parties established
@@ -227,8 +238,15 @@ io.on("connection", (socket) => {
 			socket.emit("invalidToken");
 		} else {
 			var clientPair = tokens[token];
-			// notify the other client that another client has connected
-			clientPair.client1.socket.emit("clientConnected");
+			if (clientPair.client1.socket.connected) {
+				// notify the other client that another client has connected
+				clientPair.client1.socket.emit("clientConnected");
+			}
+			else {
+				clientPair.client1.buffer.push([
+					"clientConnected", {}
+				]);
+			}
 		}
 	});
 
@@ -391,9 +409,8 @@ io.on("connection", (socket) => {
 					// while client 1's buffer is not empty, send the messages in that buffer to client 1
 					sendBufferToClient(socket, client1Buffer);
 					// also send the message to client 2
-					clientPair.client2.socket.emit("message", {
-						message: message
-					});
+					sendToClientOrBuffer(clientPair.client2.socket, clientPair.client2.buffer, "message", { message: message });
+
 				} // if client 2 is not connected, set the sending socket to be client 2's new socket
 				else if (!clientPair.client2.socket.connected) {
 					clientPair.client2.socket = socket;
@@ -401,9 +418,7 @@ io.on("connection", (socket) => {
 					// while client 2's buffer is not empty, send the messages in that buffer to client 2
 					sendBufferToClient(socket, client2Buffer);
 					// also send the message to client 1
-					clientPair.client1.socket.emit("message", {
-						message: message
-					});
+					sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "message", {message: message});
 				}
 			}
 		}
@@ -437,5 +452,25 @@ function sendBufferToClient(socket, buffer) {
 	while (buffer.length !== 0) {
 		let bufferedMessage = buffer.shift();
 		socket.emit(bufferedMessage[0], bufferedMessage[1]);
+	}
+}
+
+/* An abstraction layer that sends the specified data to the specified client socket,
+	if this socket is still connected.
+
+	Otherwise, the method will buffer the data in the specified client's buffer.
+	This method prevents code duplication.
+	// TODO use the method everywhere it is applicable
+*/
+function sendToClientOrBuffer(socket, buffer, eventName, data) {
+	// if the socket is connected
+	if (socket.connected) {
+		socket.emit(eventName, data);
+	} // otherwise buffer the eventName and data to be sent later
+	else {
+		buffer.push([
+			eventName,
+			data
+		]);
 	}
 }
