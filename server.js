@@ -27,11 +27,10 @@ function Client(publicKey, socket) {
 	this.socket = socket;
 	/* Initilize a buffer that will buffer incoming messages when the client is offline
 
-		The buffer now contains objects of data that will be send through a web socket.
-		For example: [{ message: "asdf" }], the object { message: "asdf" } will be send though a socket like:
-			socket.emit("eventName", { message: "asdf" });
+		The buffer now contains lists of eventType and an object of data that will be send through a web socket (in that order).
+		For example: buffer = [ [ "ping", { message: "asdf" } ], [...] ], the object { message: "asdf" } will be send though a socket with eventType "ping", like:
+			socket.emit("ping", { message: "asdf" });
 	*/
-	// TODO buffer should also include eventType
 	this.buffer = [];
 }
 
@@ -285,13 +284,13 @@ io.on("connection", (socket) => {
 			client1.socket = socket;
 
 			// while client 1's buffer is not empty, send the messages in that buffer to client 1
-			sendBufferToClient(socket, "message", client1Buffer);
+			sendBufferToClient(socket, client1Buffer);
 		}
 		else if ((!client2.socket || !client2.socket.connected) && client1.socket.id !== sender) {
 			client2.socket = socket;
 
 			// while client 2's buffer is not empty, send the messages in that buffer to client 2
-			sendBufferToClient(socket, "message", client2Buffer);
+			sendBufferToClient(socket, client2Buffer);
 		}
 	});
 
@@ -338,9 +337,12 @@ io.on("connection", (socket) => {
 				}	// otherwise put the message in client 2's buffer
 				else {
 					console.log("message buffered");
-					client2Buffer.push({
-						message: message
-					});
+					client2Buffer.push([
+						"message",
+						{
+							message: message
+						}
+					]);
 				}
 			}
 			// did client 2 send the message?
@@ -355,9 +357,12 @@ io.on("connection", (socket) => {
 				} // otherwise put the message in client 1's buffer
 				else {
 					console.log("message buffered");
-					client1Buffer.push({
-						message: message
-					});
+					client1Buffer.push([
+						"message",
+						{
+							message: message
+						}
+					]);
 				}
 			}
 			// wrong socket id !
@@ -384,7 +389,7 @@ io.on("connection", (socket) => {
 					clientPair.client1.socket = socket;
 
 					// while client 1's buffer is not empty, send the messages in that buffer to client 1
-					sendBufferToClient(socket, "message", client1Buffer);
+					sendBufferToClient(socket, client1Buffer);
 					// also send the message to client 2
 					clientPair.client2.socket.emit("message", {
 						message: message
@@ -394,7 +399,7 @@ io.on("connection", (socket) => {
 					clientPair.client2.socket = socket;
 
 					// while client 2's buffer is not empty, send the messages in that buffer to client 2
-					sendBufferToClient(socket, "message", client2Buffer);
+					sendBufferToClient(socket, client2Buffer);
 					// also send the message to client 1
 					clientPair.client1.socket.emit("message", {
 						message: message
@@ -428,9 +433,9 @@ io.on("connection", (socket) => {
 
 	* the eventName is the name of the event used by socket.io to transmit the message
 */
-function sendBufferToClient(socket, eventName, buffer) {
+function sendBufferToClient(socket, buffer) {
 	while (buffer.length !== 0) {
 		let bufferedMessage = buffer.shift();
-		socket.emit(eventName, bufferedMessage);
+		socket.emit(bufferedMessage[0], bufferedMessage[1]);
 	}
 }
