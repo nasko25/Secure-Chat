@@ -1,5 +1,6 @@
 import React from 'react';
 import forge from "node-forge";
+import { toBase64 } from "./util.js";
 
 export default class ComposeView extends React.Component {
   sendMessage = (event) => {
@@ -31,7 +32,8 @@ export default class ComposeView extends React.Component {
       var cipher = forge.cipher.createCipher('AES-CBC', key);
       cipher.start({iv: iv});
       var unencrypted = messageToAdd["messageId"].message
-      cipher.update(forge.util.createBuffer(unencrypted));
+                    // encode the plain text to base64, because node-forge does not handle weird characters?
+      cipher.update(forge.util.createBuffer(toBase64(unencrypted)));
       cipher.finish();
       var encrypted = cipher.output;
       messageToAdd["messageId"].message = encrypted.toHex();

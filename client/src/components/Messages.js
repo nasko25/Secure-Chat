@@ -1,5 +1,6 @@
 import React from 'react';
 import forge from "node-forge";
+import { fromBase64 } from "./util.js";
 
 /*
  * move the state to the parent MainView to be able to pass a addMessageToView() function
@@ -143,7 +144,7 @@ export default class MessagesView extends React.Component {
           if (!result) {
             console.error("There was an error with decrypting");
           }
-          data.message.message = decipher.output.data;
+          data.message.message = fromBase64(decipher.output.data);
           // add the message received from the server to the view
           this.addMessageToView({
             "messageId": data.message
