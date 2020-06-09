@@ -204,22 +204,11 @@ io.on("connection", (socket) => {
 					plainTextSecret: clientPair.plainTextSecret
 				});
 
-				// if client 1 is still connected
-				if (clientPair.client1.socket.connected) {
-					// send the client2 information to client1
-					clientPair.client1.socket.emit("client2Information", {
-						publicKey: clientPair.client2.publicKey
-					});
-				} // otherwise buffer the information that needs to be sent
-				else {
-					clientPair.client1.buffer.push([
-						"client2Information",
-						{
-							publicKey: clientPair.client2.publicKey
-						}
-					]);
-				}
-
+				// if client 1 is still connected, send the client2 information to client 1;
+				// otherwise buffer the information that needs to be send
+				sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "client2Information", 		{
+					publicKey: clientPair.client2.publicKey
+				});
 			} else {
 				// There is already a connection between two parties established
 				// TODO might expand the functionallity so that more parties can join
@@ -238,15 +227,8 @@ io.on("connection", (socket) => {
 			socket.emit("invalidToken");
 		} else {
 			var clientPair = tokens[token];
-			if (clientPair.client1.socket.connected) {
-				// notify the other client that another client has connected
-				clientPair.client1.socket.emit("clientConnected");
-			}
-			else {
-				clientPair.client1.buffer.push([
-					"clientConnected", {}
-				]);
-			}
+			// notify client 1 that client 2 approved the connection and has connected
+			sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "clientConnected", {});
 		}
 	});
 
@@ -345,43 +327,17 @@ io.on("connection", (socket) => {
 		if (clientPair.client1.socket && clientPair.client2.socket) {
 			// did client 1 send the message?
 			if (clientPair.client1.socket.id === sender) {
-				// if client 2 is connected
-				if (clientPair.client2.socket.connected) {
-					// send the message to client 2
-					clientPair.client2.socket.emit("message", {
-						message: message
-					});
-					console.log("message sent by client 1", sender, "to", clientPair.client2.socket.id);
-				}	// otherwise put the message in client 2's buffer
-				else {
-					console.log("message buffered");
-					client2Buffer.push([
-						"message",
-						{
-							message: message
-						}
-					]);
-				}
+				// if client 2 is connected, relay the message, otherwise buffer the data in client 2's buffer
+				sendToClientOrBuffer(clientPair.client2.socket, client2Buffer, "message", {
+					message: message
+				});
 			}
 			// did client 2 send the message?
 			else if (clientPair.client2.socket.id === sender) {
-				// if client 1 is connected
-				if (clientPair.client1.socket.connected) {
-					// send the message to client 1
-					clientPair.client1.socket.emit("message", {
-						message: message
-					});
-					console.log("message sent by client 2", sender, "to", clientPair.client1.socket.id);
-				} // otherwise put the message in client 1's buffer
-				else {
-					console.log("message buffered");
-					client1Buffer.push([
-						"message",
-						{
-							message: message
-						}
-					]);
-				}
+				// if client 1 is connected, relay the message, otherwise buffer the data in client 1's buffer
+				sendToClientOrBuffer(clientPair.client1.socket, client1Buffer, "message", {
+					message: message
+				});
 			}
 			// wrong socket id !
 			else {
@@ -460,7 +416,6 @@ function sendBufferToClient(socket, buffer) {
 
 	Otherwise, the method will buffer the data in the specified client's buffer.
 	This method prevents code duplication.
-	// TODO use the method everywhere it is applicable
 */
 function sendToClientOrBuffer(socket, buffer, eventName, data) {
 	// if the socket is connected
