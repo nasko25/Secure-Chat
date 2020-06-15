@@ -525,7 +525,6 @@ class InitilizeConnection extends React.Component {
           <Link className="readyLink" to = "chat" onClick = {(event) => this.secondClientApprove({ pathname: `chat`}, event) }> Connect </Link>
         );
       } else {
-
         // show the "loading" animation as the public key of the other client is still missing
         document.getElementById("load").style.display = "inline-block";
 

@@ -243,7 +243,6 @@ div.readyLink {
 /* =========================== loader ===============================*/
 .loader {
   display: inline-block;
-  display: none;
   position: relative;
   width: 40px;
   height: 40px;
