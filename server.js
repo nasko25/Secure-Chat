@@ -73,6 +73,9 @@ let tokens = {};
 
 app.use(bodyParser.json());
 
+// serve the browserified prime.worker.js when a request is made by the client for that file
+app.use("/forge/prime.worker.js", express.static(__dirname + "/prime.worker.js"));
+
 server.listen(port, () => console.log(`Server listening on port ${port}`));
 
 // verity that the token is valid
@@ -150,6 +153,17 @@ app.get("/generate_token", (req, res) => {
 		res.end();
 	});
 });
+
+// app.get("/forge/prime.worker.js", (req, res) => {
+// 	fs.readFile("prime.worker.js", (err, data)=>{
+// 		if (err) {
+// 			console.log(err);
+// 			return;
+// 		}
+// 		res.type(".js")
+// 		res.send(data);
+// 	});
+// });
 
 // listen for socket.io connections
 io.on("connection", (socket) => {

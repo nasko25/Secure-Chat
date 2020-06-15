@@ -86,13 +86,17 @@ class InitilizeConnection extends React.Component {
   state = {
     // data: null,
     // assume that you are the initiator until the token is checked to be valid from the server
-    initiator: true
+    initiator: true,
+    // will be set to true when the initiator client clicks on the "Ready" button
+    initiatingConnection: false
   };
 
   // initiate a connection
   // called when the user clicks on a button
   initiateConnection = (to, event)=> {
 
+    // set a flag indicating that the client is waiting for the second client's response
+    this.setState({initiatingConnection: true});
     // start the "loading" animation
     // TODO id instead of class?
     document.getElementsByClassName("readyLink")[0].style.display = "none";
@@ -466,15 +470,33 @@ class InitilizeConnection extends React.Component {
     // TODO more readability at the cost of a little code duplication; it is worth it?
 
     let box;
+    let readyLink;
     // if this client is the initiator, show the box where the user can input a secret
     if (this.state.initiator) {
+      // if the private key has loaded, you can display the ready button        // if initiatingConnection is true, it means that the client has already started a connection
+      if (this.state.priv && document.getElementById("load") && !this.state.initiatingConnection) {
+        // hide the "loading" animation as the private key has loaded
+        document.getElementById("load").style.display = "none";
+
+        readyLink = (
+          <Link className="readyLink" to = "chat" onClick={(event) => this.initiateConnection({ pathname: `chat`, /* hash: `#hash`, */ }, event)}> Ready </Link>
+        );
+      }         // document.getElementById("load") should not be null
+      else if (document.getElementById("load")) {
+        // show the "loading" animation as the private key of this client has still not loaded
+        document.getElementById("load").style.display = "inline-block";
+
+        // the ready link should not be yet shown
+        readyLink = "";
+      }
+
       box = (
         <div className="box">
           <input type="input" className="secretField" placeholder="Secret" name="secret" id='secret'/>
           <label htmlFor="secret" className="secretLabel">Secret</label>
 
           <div className="readyBtn">
-            <Link className="readyLink" to = "chat" onClick={(event) => this.initiateConnection({ pathname: `chat`, /* hash: `#hash`, */ }, event)}> Ready </Link>
+            {readyLink}
             <div className="loader" id = "load"><div></div><div></div><div></div><div></div></div>
           </div>
         </div>
