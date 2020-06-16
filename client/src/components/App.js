@@ -360,6 +360,7 @@ class InitilizeConnection extends React.Component {
       // you can remove the "workers" parameter to prevent the multiple calls to forge/prime.worker.js
       // TODO https://stackoverflow.com/questions/10343913/how-to-create-a-web-worker-from-a-string     : can try to create a uri blob from the
       // received forge/prome.worker.js to prevent the multiple calls to the same forge/prime.worker.js file
+      // (what if the file is in the react production build? will it not be queried for that often? )
       rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
 
         // some quick api tests
