@@ -356,24 +356,31 @@ class InitilizeConnection extends React.Component {
     var rsa = forge.pki.rsa;
 
     // make a promise for the generation of the rsa keys
-    let promise = new Promise(function(resolve, reject) {
-      // you can remove the "workers" parameter to prevent the multiple calls to forge/prime.worker.js
-      // TODO https://stackoverflow.com/questions/10343913/how-to-create-a-web-worker-from-a-string     : can try to create a uri blob from the
-      // received forge/prome.worker.js to prevent the multiple calls to the same forge/prime.worker.js file
-      // (what if the file is in the react production build? will it not be queried for that often? )
-      rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
+    let promise = new Promise((resolve, reject) => {
+      // fetch the /forge/prime.worker.js file from the express backend
+      this.getPrimaryWorker().then(res => {
 
-        // some quick api tests
-        let a = keypair.publicKey.encrypt("asdf")
-        let b = forge.pki.publicKeyFromPem(forge.pki.publicKeyToPem(keypair.publicKey)).encrypt("asdf")
-        console.log(keypair.privateKey.decrypt(a));
-        console.log(keypair.privateKey.decrypt(b));
+        // create a blob from the fetched javascript worker script and assign it an object url
+        var primaryWorker = new Blob([res], {type: 'application/javascript'});
+        var blobURL = URL.createObjectURL(primaryWorker);
 
-        resolve(keypair);
+        // feed the generateKeyPair() function the worker script that was fetched from the express backend
+        // otherwise the node-forge module was making multiple get requests to forge/prime.woker.js, which was not ideal
+        // you can remove the "workers" parameter to prevent the multiple calls to forge/prime.worker.js (if you stop using the prime worker from the created blob)
+        rsa.generateKeyPair({bits: 2048, workers: -1, workerScript: blobURL}, (err, keypair) => {
 
-        reject("promise not fullfilled");
+          // some quick api tests
+          let a = keypair.publicKey.encrypt("asdf")
+          let b = forge.pki.publicKeyFromPem(forge.pki.publicKeyToPem(keypair.publicKey)).encrypt("asdf")
+          console.log(keypair.privateKey.decrypt(a));
+          console.log(keypair.privateKey.decrypt(b));
+
+          resolve(keypair);
+
+          reject("promise not fullfilled");
+        })
       })
-    })
+    });
 
     // make the promise cancalable (so it will be canceled if the token is invalid as the page does not need to load in this case)
     const generateRsaPromise = makeCancelable(promise);
@@ -440,6 +447,17 @@ class InitilizeConnection extends React.Component {
     }
 
     return body.token;
+  }
+
+  getPrimaryWorker = async () => {
+    const response = await fetch("/forge/prime.worker.js");
+    const body = await response.text();
+
+    if (response.status !== 200) {
+      throw Error(body.message);
+    }
+
+    return body;
   }
 
   // callApi = async () => {
