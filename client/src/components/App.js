@@ -357,6 +357,9 @@ class InitilizeConnection extends React.Component {
 
     // make a promise for the generation of the rsa keys
     let promise = new Promise(function(resolve, reject) {
+      // you can remove the "workers" parameter to prevent the multiple calls to forge/prime.worker.js
+      // TODO https://stackoverflow.com/questions/10343913/how-to-create-a-web-worker-from-a-string     : can try to create a uri blob from the
+      // received forge/prome.worker.js to prevent the multiple calls to the same forge/prime.worker.js file
       rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
 
         // some quick api tests
