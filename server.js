@@ -226,7 +226,8 @@ io.on("connection", (socket) => {
 				// otherwise buffer the information that needs to be send
 				sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "client2Information", 		{
 					publicKey: clientPair.client2.publicKey
-				});
+				},
+				clientPair);
 			} else {
 				// There is already a connection between two parties established
 				// TODO might expand the functionallity so that more parties can join
@@ -246,7 +247,7 @@ io.on("connection", (socket) => {
 		} else {
 			var clientPair = tokens[token];
 			// notify client 1 that client 2 approved the connection and has connected
-			sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "clientConnected", {});
+			sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "clientConnected", {}, clientPair);
 		}
 	});
 
@@ -262,7 +263,8 @@ io.on("connection", (socket) => {
 		sendToClientOrBuffer(clientPair.client2.socket, clientPair.client2.buffer, "firstHalfKey", {
 			key: data.key,
 			iv: data.iv
-		});
+		},
+		clientPair);
 	});
 
 	// when the second client sends its part of the encryption key,
@@ -275,7 +277,8 @@ io.on("connection", (socket) => {
 		sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "secondHalfKey", {
 			key: data.key,
 			iv: data.iv
-		});
+		},
+		clientPair);
 	});
 
 	// ping the server to update the socket and send any messages that are stored in the client buffers
@@ -302,13 +305,13 @@ io.on("connection", (socket) => {
 			client1.socket = socket;
 
 			// while client 1's buffer is not empty, send the messages in that buffer to client 1
-			sendBufferToClient(socket, client1Buffer);
+			sendBufferToClient(socket, client1Buffer, clientPair);
 		}
 		else if ((!client2.socket || !client2.socket.connected) && client1.socket.id !== sender) {
 			client2.socket = socket;
 
 			// while client 2's buffer is not empty, send the messages in that buffer to client 2
-			sendBufferToClient(socket, client2Buffer);
+			sendBufferToClient(socket, client2Buffer, clientPair);
 		}
 	});
 
@@ -348,14 +351,16 @@ io.on("connection", (socket) => {
 				// if client 2 is connected, relay the message, otherwise buffer the data in client 2's buffer
 				sendToClientOrBuffer(clientPair.client2.socket, client2Buffer, "message", {
 					message: message
-				});
+				},
+				clientPair);
 			}
 			// did client 2 send the message?
 			else if (clientPair.client2.socket.id === sender) {
 				// if client 1 is connected, relay the message, otherwise buffer the data in client 1's buffer
 				sendToClientOrBuffer(clientPair.client1.socket, client1Buffer, "message", {
 					message: message
-				});
+				},
+				clientPair);
 			}
 			// wrong socket id !
 			else {
@@ -381,18 +386,18 @@ io.on("connection", (socket) => {
 					clientPair.client1.socket = socket;
 
 					// while client 1's buffer is not empty, send the messages in that buffer to client 1
-					sendBufferToClient(socket, client1Buffer);
+					sendBufferToClient(socket, client1Buffer, clientPair);
 					// also send the message to client 2
-					sendToClientOrBuffer(clientPair.client2.socket, clientPair.client2.buffer, "message", { message: message });
+					sendToClientOrBuffer(clientPair.client2.socket, clientPair.client2.buffer, "message", { message: message }, clientPair);
 
 				} // if client 2 is not connected, set the sending socket to be client 2's new socket
 				else if (!clientPair.client2.socket.connected) {
 					clientPair.client2.socket = socket;
 
 					// while client 2's buffer is not empty, send the messages in that buffer to client 2
-					sendBufferToClient(socket, client2Buffer);
+					sendBufferToClient(socket, client2Buffer, clientPair);
 					// also send the message to client 1
-					sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "message", {message: message});
+					sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "message", {message: message}, clientPair);
 				}
 			}
 		}
@@ -420,12 +425,17 @@ io.on("connection", (socket) => {
 	the specified socket.
 	This method prevents some code duplication.
 
-	* the eventName is the name of the event used by socket.io to transmit the message
+	* clientPair includes the following information for the client pair that is exchanging messages:
+		* lastUsed		   - contains the Date when the sockets were last used (used for garbage collecting dead connections)
 */
-function sendBufferToClient(socket, buffer) {
+function sendBufferToClient(socket, buffer, clientPair) {
 	while (buffer.length !== 0) {
 		let bufferedMessage = buffer.shift();
 		socket.emit(bufferedMessage[0], bufferedMessage[1]);
+		// TODO update the lastUsed variable every time a message is sent throught the socker,
+		// or
+		// once before the while and once after?
+		clientPair.lastUsed = Date.now();
 	}
 }
 
@@ -434,8 +444,13 @@ function sendBufferToClient(socket, buffer) {
 
 	Otherwise, the method will buffer the data in the specified client's buffer.
 	This method prevents code duplication.
+
+	* the eventName is the name of the event used by socket.io to transmit the message
+
+	* clientPair includes the following information for the client pair that is exchanging messages:
+		* lastUsed		   - contains the Date when the sockets were last used (used for garbage collecting dead connections)
 */
-function sendToClientOrBuffer(socket, buffer, eventName, data) {
+function sendToClientOrBuffer(socket, buffer, eventName, data, clientPair) {
 	// if the socket is connected
 	if (socket.connected) {
 		socket.emit(eventName, data);
@@ -446,4 +461,5 @@ function sendToClientOrBuffer(socket, buffer, eventName, data) {
 			data
 		]);
 	}
+	clientPair.lastUsed = Date.now();
 }
