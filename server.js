@@ -11,6 +11,12 @@ const bodyParser = require("body-parser");
 const forge = require("node-forge");
 
 /*
+	Maximum time allowed for a connection to stay alive in milliseconds.
+	Used for garbage collection.
+*/
+const GARB_MAX_TIME_ALLOWED = 20 * 60 * 60 * 1000 // 20 hours
+
+/*
 	Represents the two clients in the communication.
 	Both of them need to share their public key and the
 	socket through which they communicate.
@@ -69,6 +75,7 @@ function ClientPair(client1, client2, secret) {
 */
 
 // TODO clear the tokens that have stayed for too long; garbage collection
+// TODO more sensible name?
 /*
 	This object keeps track of the tokens and clientPair connections.
 	The tokens are the keys and their associated clientPair objects/functions are the values of the tokens object.
@@ -463,3 +470,34 @@ function sendToClientOrBuffer(socket, buffer, eventName, data, clientPair) {
 	}
 	clientPair.lastUsed = Date.now();
 }
+
+/*
+	This function frees the resources associated with dead connections
+*/
+function garbageCollect() {
+	for (var token in tokens) {
+		var clientPair = tokens[token];
+		var lastUsed = clientPair.lastUsed;
+		var now = Date.now();
+		if (now - lastUsed > GARB_MAX_TIME_ALLOWED) {
+			// free the resources
+			var client1 = clientPair.client1;
+			var client2 = clientPair.client2;
+
+			// close any remaining sockets
+			if (client1 && client1.socket) {
+				client1.socket.close();
+			}
+			if (client2 && client2.socket) {
+				client2.socket.close();
+			}
+
+			tokens[token] = null;			// TODO is it necessary?
+			delete tokens[token];
+
+			console.log("[GARBAGE COLLECTED]: Connection with token", token, "\tWas active for:", new Date(now - lastUsed).toISOString().slice(11, -1));
+		}
+	}
+}
+
+// TODO setInterval to garbage collect
