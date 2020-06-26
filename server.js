@@ -14,9 +14,8 @@ const forge = require("node-forge");
 	Maximum time allowed for a connection to stay alive in milliseconds.
 	Used for garbage collection.
 */
-//const GARB_MAX_TIME_ALLOWED = 20 * 60 * 60 * 1000 // 20 hours
+const GARB_MAX_TIME_ALLOWED = 20 * 60 * 60 * 1000 // 20 hours
 
-const GARB_MAX_TIME_ALLOWED = 10000;
 /*
 	Represents the two clients in the communication.
 	Both of them need to share their public key and the
