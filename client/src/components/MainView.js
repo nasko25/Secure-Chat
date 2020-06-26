@@ -74,6 +74,10 @@ export default class MainView extends React.Component {
         pingServerInterval: pingServer
       });
     }
+
+    this.state.socket.on("connectionClosed", () => {
+      this.props.history.push("/connection_closed");
+    });
   }
 
   render() {

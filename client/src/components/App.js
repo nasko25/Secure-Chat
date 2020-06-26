@@ -10,6 +10,7 @@ import {
 import MainView from "./MainView.js"
 import InvalidToken from "./InvalidToken.js"
 import NotFound from "./NotFound.js"
+import ConnectionClosed from "./ConnectionClosed.js"
 import './index.css'
 import forge from "node-forge"
 import io from 'socket.io-client';
@@ -65,6 +66,9 @@ export default class App extends React.Component {
           </Route>
           <Route path = "/invalid_token">
             <InvalidToken />
+          </Route>
+          <Route path = "/connection_closed">
+            <ConnectionClosed />
           </Route>
           <Route path = "/not_found">
             <NotFound />
@@ -399,6 +403,11 @@ class InitilizeConnection extends React.Component {
       .catch(err => console.log(err));
 
     // this.setState({dh: crypto.createDiffieHellman(1024)});
+
+    // if the connection is closed, the user should be notified
+    this.props.socket.on("connectionClosed", () => {
+      this.props.history.push("/connection_closed");
+    });
   }
 
   // generateRsa = async () => {

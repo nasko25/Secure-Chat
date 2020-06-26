@@ -14,8 +14,9 @@ const forge = require("node-forge");
 	Maximum time allowed for a connection to stay alive in milliseconds.
 	Used for garbage collection.
 */
-const GARB_MAX_TIME_ALLOWED = 20 * 60 * 60 * 1000 // 20 hours
+//const GARB_MAX_TIME_ALLOWED = 20 * 60 * 60 * 1000 // 20 hours
 
+const GARB_MAX_TIME_ALLOWED = 10000;
 /*
 	Represents the two clients in the communication.
 	Both of them need to share their public key and the
@@ -485,19 +486,24 @@ function garbageCollect() {
 			var client2 = clientPair.client2;
 
 			// close any remaining sockets
-			if (client1 && client1.socket) {
-				client1.socket.close();
+			if (client1 && client1.socket) {console.log("conn close c1!")
+				client1.socket.emit("connectionClosed");	// TODO implement on client -> open a static page with a message about the error
+				client1.socket.disconnect(true);
 			}
 			if (client2 && client2.socket) {
-				client2.socket.close();
+				client2.socket.emit("connectionClosed");
+				client2.socket.disconnect(true);
 			}
 
 			tokens[token] = null;			// TODO is it necessary?
 			delete tokens[token];
 
-			console.log("[GARBAGE COLLECTED]: Connection with token", token, "\tWas active for:", new Date(now - lastUsed).toISOString().slice(11, -1));
+			console.log("\n[GARBAGE COLLECTED]: Connection with token", token, "\nWas active for:", new Date(now - lastUsed).toISOString().slice(11, -1), "\nTokens list:", tokens);
 		}
 	}
 }
 
-// TODO setInterval to garbage collect
+setInterval(
+	garbageCollect,
+	10 * 1000		// every 10 seconds
+);
