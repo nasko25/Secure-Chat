@@ -9,6 +9,8 @@ body {
   /* overflow on mobile devices should be hidden as it prevents the
   default "bouncing/stretching" behavior when scrolling */
   overflow: hidden;
+
+  background-color: #282c34;
 }
 
 code {

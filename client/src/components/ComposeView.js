@@ -10,11 +10,25 @@ export default class ComposeView extends React.Component {
     if (message === null || message === "") {
       return;
     }
+
+    var date = new Date();
     var messageToAdd = {
       "messageId": {
         message: message,
         mine: true,
-        time: new Date()
+        time: date
+      }
+    };
+
+    // create a new messageToAdd but set the message field later
+    // the message field will contain the encrypted version of the message
+    // previously, only one messageToAdd object was used, but it caused weird behavior
+    // (i suspect a race condition happened)
+    var encryptedMessageToAdd = {
+      "messageId": {
+        message: null,
+        mine: true,
+        time: date
       }
     };
 
@@ -31,22 +45,19 @@ export default class ComposeView extends React.Component {
       // encrypt the key
       var cipher = forge.cipher.createCipher('AES-CBC', key);
       cipher.start({iv: iv});
-      var unencrypted = messageToAdd["messageId"].message
+      var unencrypted = messageToAdd["messageId"].message;
                     // encode the plain text to base64, because node-forge does not handle weird characters?
       cipher.update(forge.util.createBuffer(toBase64(unencrypted)));
       cipher.finish();
       var encrypted = cipher.output;
-      messageToAdd["messageId"].message = encrypted.toHex();
+      encryptedMessageToAdd["messageId"].message = encrypted.toHex();
       // send the encrypted message to the server, so the server can transmit it to the other client
       socket.emit("message", {
-        message: messageToAdd["messageId"],
+        message: encryptedMessageToAdd["messageId"],
         token: this.props.token
       });
 
-      // set the message to plaintext again so it can be displayed in the user's browser
-      messageToAdd["messageId"].message = unencrypted;
-
-      // add the message to the view
+      // add the unencrypted message to the view
       addMessageToView(messageToAdd);
 
       // clear the input
