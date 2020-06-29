@@ -1,3 +1,4 @@
+// TODO some of these imports are unnecessary because they are not used
 import React from "react";
 import {
   BrowserRouter as Router,

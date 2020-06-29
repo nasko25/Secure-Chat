@@ -72,6 +72,7 @@ function ClientPair(client1, client2, secret) {
 // TODO production: https://create-react-app.dev/docs/deployment/
 /* TODO reliable message delivery and buffer messages on the client
 	(and buffer messages on the server better - after implementing reliable socket message delivery - ACKs)
+	(https://stackoverflow.com/questions/20417569/acknowledgment-for-socket-io-custom-event)
 */
 
 // TODO more sensible name?
