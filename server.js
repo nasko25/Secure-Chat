@@ -74,7 +74,6 @@ function ClientPair(client1, client2, secret) {
 	(and buffer messages on the server better - after implementing reliable socket message delivery - ACKs)
 */
 
-// TODO clear the tokens that have stayed for too long; garbage collection
 // TODO more sensible name?
 /*
 	This object keeps track of the tokens and clientPair connections.
