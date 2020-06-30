@@ -57,6 +57,8 @@ export default class ComposeView extends React.Component {
         token: this.props.token
       });
 
+      // TODO maybe add the message to the view only after you are sure that the server has received the message?
+      // (add a callback on the server that will send back what it received and when the client receives it, it will render the message that it received from the server (which should be the message it sent))
       // add the unencrypted message to the view
       addMessageToView(messageToAdd);
 

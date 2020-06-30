@@ -339,6 +339,25 @@ export default class InitilizeConnection extends React.Component {
     this.props.socket.on("connectionClosed", () => {
       this.props.history.push("/connection_closed");
     });
+
+    // set an interval to ping the server
+    // in this way the server can keep track of
+    // users that are disconnected and can update their sockets
+    var pingServer = setInterval(() => {
+      let query = new URLSearchParams(this.props.location.search);
+      const token = query.get("token");
+
+      // only if the token is defined
+      if (token) {
+        var socket = this.props.socket;
+        socket.emit("pingServer", {
+          token: token
+        });
+      }
+    }, 2000);
+    this.setState({
+      pingServerInterval: pingServer
+    });
   }
 
   // generateRsa = async () => {
@@ -518,6 +537,8 @@ export default class InitilizeConnection extends React.Component {
 
     if (this.state.generateRsaPromise)
       this.state.generateRsaPromise.cancel();
+
+    clearInterval(this.state.pingServerInterval);
 
     // unsubscribe the socket from any events it was previously listening for;
     // this prevents it from changing the state of this component after the component is unmounted,

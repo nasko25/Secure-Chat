@@ -3,7 +3,10 @@ const crypto = require("crypto")
 
 const app = express();
 const server = require('http').Server(app);
-const io = require("socket.io")(server);
+const io = require("socket.io")(server, {
+	pingTimeout: 1000,	// 1 second without response means that the socket is disconnected
+	pingInterval: 1000	// ping the clients every 1 second
+});
 
 const port = process.env.PORT || 9000;
 const bodyParser = require("body-parser");
@@ -301,6 +304,10 @@ io.on("connection", (socket) => {
 		var client1 = clientPair.client1;
 		var client2 = clientPair.client2;
 
+		if (!client1 || !client2) {
+			return;
+		}
+
 		// get the buffers that are used to store messages while users are offline
 		var client1Buffer = client1.buffer;
 		var client2Buffer = client2.buffer;
@@ -308,16 +315,23 @@ io.on("connection", (socket) => {
 		// if the socket of one of the clients was not set or is no longer connected,
 		// and the other client was not the sender,
 		// set the empty socket to be the sender's socket
-		if ((!client1.socket || !client1.socket.connected) && client2.socket.id !== sender) {
+		if ((!client1.socket || !client1.socket.connected) && client2.socket.id !== sender && client1Buffer.length !== 0 ) {
 			client1.socket = socket;
 
 			// while client 1's buffer is not empty, send the messages in that buffer to client 1
 			sendBufferToClient(socket, client1Buffer, clientPair);
 		}
-		else if ((!client2.socket || !client2.socket.connected) && client1.socket.id !== sender) {
+		else if ((!client2.socket || !client2.socket.connected) && client1.socket.id !== sender && client2Buffer.length !== 0) {
 			client2.socket = socket;
 
 			// while client 2's buffer is not empty, send the messages in that buffer to client 2
+			sendBufferToClient(socket, client2Buffer, clientPair);
+		}
+		// however, if the client just disconnected temporarily and their socket is still valid, but there are buffered messages for them
+		else if ((client1.socket && client1.socket.connected) && client1Buffer.length !== 0 && client2.socket.id === sender) {
+			sendBufferToClient(socket, client1Buffer, clientPair);
+		}
+		else if ((client2.socket && client2.socket.connected) && client2Buffer.length !== 0 && client1.socket.id === sender) {
 			sendBufferToClient(socket, client2Buffer, clientPair);
 		}
 	});
@@ -485,7 +499,7 @@ function garbageCollect() {
 			var client2 = clientPair.client2;
 
 			// close any remaining sockets
-			if (client1 && client1.socket) {console.log("conn close c1!")
+			if (client1 && client1.socket) {
 				client1.socket.emit("connectionClosed");	// TODO implement on client -> open a static page with a message about the error
 				client1.socket.disconnect(true);
 			}
