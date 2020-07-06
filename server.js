@@ -157,11 +157,23 @@ app.get("/generate_token", (req, res) => {
 	  if (buffer) {
 		// convert the bytes to a hex representation, so they can be used as a url parameter
 		let token = buffer.toString('hex');
+
+		// if the token already exists in the tokens object
+		while (token in tokens) {
+			console.log("\ngenerated token already exists in the tokens object:", token);
+			console.log("...generating a new token...");
+
+			// generate a new token, because a collision has occured
+			token = crypto.randomBytes(24).toString("hex");
+
+			console.log("new token:", token, "\n");
+		}
+
+		tokens[token] = new ClientPair();
+
 		// send the token to the initiator client, create a new ClientPair object, and save it in the tokens object
 		// with the token as the key
 		res.send({token: token});
-		// TODO collisions?
-		tokens[token] = new ClientPair();
 	  }		// otherwise don't do anything (should not happen in practice)
 	  else
 		res.end();
@@ -428,20 +440,6 @@ io.on("connection", (socket) => {
 	});
 });
 
-/*
-		if (!(token in tokens)) {
-			var client = new Client("TODO:socket", "TODO:public key");
-			tokens[token] = new ClientPair(client, null);
-		}
-		else {
-			var clientPair = tokens[token];
-			if (clientPair.client2 == null && clientPair.connections < 2) {
-				clientPair.client2 = new Client("TODO:socket", "TODO:public key");
-				clientPair.connections++;
-			}
-		}
-
-*/
 /* An abstraction layer that sends the specified buffer to
 	the specified socket.
 	This method prevents some code duplication.
