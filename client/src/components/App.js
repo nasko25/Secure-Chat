@@ -4,7 +4,6 @@ import {
   Switch,
   Route,
   Redirect,
-  Link,
   withRouter
 } from "react-router-dom";
 import InitilizeConnection from "./InitilizeConnection.js";
@@ -13,9 +12,7 @@ import InvalidToken from "./InvalidToken.js";
 import NotFound from "./NotFound.js";
 import ConnectionClosed from "./ConnectionClosed.js";
 import './index.css';
-import forge from "node-forge";
 import io from 'socket.io-client';
-import crypto from 'crypto';
 
 // TODO might put them in separate modules or one separate module
 const socket = io();

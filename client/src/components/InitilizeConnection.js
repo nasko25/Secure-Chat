@@ -1,20 +1,8 @@
 // TODO some of these imports are unnecessary because they are not used
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Redirect,
-  Link,
-  withRouter
-} from "react-router-dom";
-import MainView from "./MainView.js";
-import InvalidToken from "./InvalidToken.js";
-import NotFound from "./NotFound.js";
-import ConnectionClosed from "./ConnectionClosed.js";
+import { Link } from "react-router-dom";
 import './index.css';
 import forge from "node-forge";
-import io from 'socket.io-client';
 import crypto from 'crypto';
 
 export default class InitilizeConnection extends React.Component {
