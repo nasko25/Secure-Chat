@@ -69,8 +69,7 @@ export default class ComposeView extends React.Component {
       // TODO don't scroll if user has scrolled up
       // TODO this looks like a hacky solution ?
       setTimeout(function() {
-        // TODO make it an id?
-        var scrollView = document.getElementsByClassName("messagesView")[0];
+        var scrollView = document.getElementById("messagesView");
         scrollView.scrollTop = scrollView.scrollHeight;
       }, 100);
     }

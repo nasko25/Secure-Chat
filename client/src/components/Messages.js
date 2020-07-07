@@ -156,7 +156,7 @@ export default class MessagesView extends React.Component {
   // TODO display times?
   render() {
     return (
-      <div className = "messagesView">
+      <div id = "messagesView">
         { this.renderAllMessages() }
       </div>
     );

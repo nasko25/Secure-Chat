@@ -73,7 +73,7 @@ code {
 }
 
 /* ============================================================================= */
-.messagesView {
+#messagesView {
   overflow: auto;
   height: calc(100vh - 47px);
 }
@@ -82,7 +82,7 @@ code {
   tested on iOS safari
 */
 @media only screen and (max-device-width: 768px) {
-  .messagesView {
+  #messagesView {
     margin-top: 120px;
     height: calc(100vh - 47px - 125px);
   }
