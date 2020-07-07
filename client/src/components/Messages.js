@@ -14,28 +14,7 @@ export default class MessagesView extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      messagesJson: {
-        1: {
-          message: "This is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a messageThis is a message",
-          mine: true,
-          time: new Date(Date.UTC(2010, 0, 1, 12, 12, 12))
-        },
-        2: {
-          message: "hey",
-          mine: false,
-          time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
-        },
-        3: {
-          message: "message",
-          mine: false,
-          time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
-        },
-        4: {
-          message: "nice",
-          mine: true,
-          time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
-        }
-      }
+      messagesJson: { }
     };
 
     props.setParentReference(this.addMessageToView);
@@ -64,7 +43,6 @@ export default class MessagesView extends React.Component {
   }
 
   renderAllMessages() {
-    // TODO server does not keep a list of messages though
     var { messagesJson } = this.state;
 
     // list of messages to return
@@ -82,19 +60,19 @@ export default class MessagesView extends React.Component {
   }
 
   componentDidMount() {
-    var newMessage = {
-      5: {
-        message: "my new message",
-        mine: true,
-        time: new Date(Date.UTC(2010, 0, 1, 12, 12, 14))
-      }
-    };
 
     this.handler = (event) => {
         var messageToAdd = event.detail.messageToAdd;
+        var nextId;
         // messageToAdd's id must be unique and follow the order of the this.state.messagesJson object's keys
-                      // get the key of the object with the highest key                                                  and increment it
-        var nextId = parseInt(Object.keys(this.state.messagesJson).reduce((a, b) => messageToAdd[a] > messageToAdd[b] ? a : b)) + 1;
+        // if the messagesJson object has less than 1 element, set the id of the next message to 1 (it will be the initial message)
+        if (Object.keys(this.state.messagesJson).length < 1) {
+          nextId = 1;
+        } // otherwise set the id to the biggest index in the object + 1
+        else {
+                        // get the key of the object with the highest key                                           and increment it
+          nextId = parseInt(Object.keys(this.state.messagesJson).reduce((a, b) => messageToAdd[a] > messageToAdd[b] ? a : b)) + 1;
+        }
 
         // change the old "messageId" key to be nextId, so that the id is a unique number and can be displayed
         if ("messageId" !== nextId) {
@@ -107,14 +85,6 @@ export default class MessagesView extends React.Component {
 
     // is this allowed when using react?
     document.addEventListener("newMessage", this.handler);
-
-    this.timeout = setTimeout(
-        function() {
-            this.setState({messagesJson: {...this.state.messagesJson, ...newMessage}});
-        }
-        .bind(this),
-        3000
-    );
 
     // get the socket from props
     var socket = this.props.socket;
@@ -164,8 +134,6 @@ export default class MessagesView extends React.Component {
 
   componentWillUnmount() {
       document.removeEventListener("newMessage", this.handler);
-
-      clearTimeout(this.timeout);
   }
 }
 
