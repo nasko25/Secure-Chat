@@ -334,21 +334,6 @@ export default class InitilizeConnection extends React.Component {
     });
   }
 
-  // generateRsa = async () => {
-  //   var rsa = forge.pki.rsa;
-  //   rsa.generateKeyPair({bits: 2048, workers: -1}, (err, keypair) => {
-
-  //     // some quick api tests
-  //     let a = keypair.publicKey.encrypt("asdf")
-  //     let b = forge.pki.publicKeyFromPem(forge.pki.publicKeyToPem(keypair.publicKey)).encrypt("asdf")
-  //     console.log(keypair.privateKey.decrypt(a));
-  //     console.log(keypair.privateKey.decrypt(b));
-
-  //     this.setState({ priv: keypair.privateKey});
-  //     this.setState({ pub: forge.pki.publicKeyToPem(keypair.publicKey)});
-  //   })
-  // }
-
   // verifies that the token is valid on the server
   verifyToken = async (token) => {
     // verify that it is a real token
@@ -418,7 +403,7 @@ export default class InitilizeConnection extends React.Component {
 
       box = (
         <div className="box">
-          <input type="input" className="secretField" placeholder="Secret" name="secret" id='secret'/>
+          <input type="input" className="secretField" placeholder="Secret" name="sec" id='secret'/>     { /* The name of the input field was "secret" but chrome was always trying to autocomplete with previous used input values */ }
           <label htmlFor="secret" className="secretLabel">Secret</label>
 
           <div className="readyBtn">

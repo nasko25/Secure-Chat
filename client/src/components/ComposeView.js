@@ -98,7 +98,6 @@ class SendButton extends React.Component {
     this.sendMessage = props.sendMessage;
   }
 
-  // TODO https://stackoverflow.com/questions/53597482/setstate-outside-component
   render() {
     return (
       <button className = "send" onClick = {this.sendMessage}>
