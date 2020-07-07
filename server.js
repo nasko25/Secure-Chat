@@ -71,14 +71,15 @@ function ClientPair(client1, client2, secret) {
 // TODO null checks
 
 // TODO if a client gives a token that does not exist, close the socket (and maybe the other socket connected to it too?):
-// TODO if one socket in the client pair closes, close the other automatically?
+/* TODO send a socket message on componentWillUnmount() that notifies the server that the client will disconnect?
+	and then notify the other client about it as well, so they can close the connection and inform the client
+*/
 // TODO production: https://create-react-app.dev/docs/deployment/
-/* TODO reliable message delivery and buffer messages on the client
+/* TODO reliable message delivery and buffer messages on the client ?
 	(and buffer messages on the server better - after implementing reliable socket message delivery - ACKs)
 	(https://stackoverflow.com/questions/20417569/acknowledgment-for-socket-io-custom-event)
 */
 
-// TODO more sensible name?
 /*
 	This object keeps track of the tokens and clientPair connections.
 	The tokens are the keys and their associated clientPair objects/functions are the values of the tokens object.
@@ -108,36 +109,6 @@ app.post("/verify_token", (req, res) => {
 		res.send({})
 	}
 });
-
-// app.post("/send_key", (req, res) => {
-// 	let token = req.body.token;
-// 	let publicKey = req.body.publicKey;
-// 	let secret = req.body.secret;
-
-// 	if (!(token in tokens)) {
-// 		res.status(400).send({message: "Invalid token"});
-// 	} else {
-// 		var clientPair = tokens[token];
-// 		if (clientPair.client1 == null && clientPair.connections < 1) {
-// 			clientPair.client1 = new Client(publicKey);
-// 			clientPair.connections++;
-// 			clientPair.lastUsed = Date.now();
-// 		} else if (clientPair.client2 == null && clientPair.connections < 2) {
-// 			clientPair.client2 = new Client(publicKey);
-// 			clientPair.connections++;
-// 			clientPair.lastUsed = Date.now();
-// 		} else {
-// 			// There is already a connection established
-// 			// TODO might expand the functionallity so that more parties can join
-// 			// Then I will need to figure out how to send them the already established AES key
-// 			// (they can probably obtain it from one of the other clients)
-// 			res.status(400).send({message: "Invalid token"});
-// 		}
-// 	}
-// 	console.log(token, publicKey, secret);
-// 	console.log("tokens:", tokens)
-
-// });
 
 /*
 	Generates a token.
@@ -204,7 +175,6 @@ io.on("connection", (socket) => {
 		if (!(token in tokens)) {
 			socket.emit("invalidToken");
 		} else if (token != null && publicKey != null) {				// if the token and the public key are not null/undefined:
-			// TODO secret max length; what if empty?
 			var clientPair = tokens[token];
 
 			// if it is client1's connection
@@ -251,10 +221,11 @@ io.on("connection", (socket) => {
 				},
 				clientPair);
 			} else {
-				// There is already a connection between two parties established
-				// TODO might expand the functionallity so that more parties can join
-				// Then I will need to figure out how to send them the already established AES key
-				// (they can probably obtain it from one of the other clients)
+				// There is already a connection between two parties established or the token is just not valid
+				/* TODO might expand the functionallity so that more parties can join
+					Then I will need to figure out how to send them the already established AES key
+					(they can probably obtain it from one of the other clients)
+				*/
 				socket.emit("invalidToken");
 			}
 		}
@@ -361,10 +332,6 @@ io.on("connection", (socket) => {
 		var client1Buffer = clientPair.client1.buffer;
 		var client2Buffer = clientPair.client2.buffer;
 
-		/* TODO checking the socket IDs looks like not-so-good practice
-		maybe create a room with the token? https://socket.io/docs/rooms-and-namespaces#Rooms
-		https://socket.io/docs/emit-cheatsheet/  */
-
 		// set the "mine" property of the message to false, indicating that the other client sent the message
 		//console.log(message)
 		message.mine = false;
@@ -397,7 +364,6 @@ io.on("connection", (socket) => {
 			}
 			// wrong socket id !
 			else {
-				// TODO add proper error logging!
 				console.log("WRONG SOCKET ID!");
 				console.log("socket id:", socket.id);
 				console.log("is 1 connected:", clientPair.client1.socket.connected);
@@ -408,11 +374,6 @@ io.on("connection", (socket) => {
 					(implemented entirely by socket.io);
 					this change in sockets needs to be handled.
 				*/
-				// TODO buffers should be sent when a client connects, not when they send a message
-				// (maybe ping the server every once in a while and then update the sockets as well
-				// and send the buffers if neccessary); create an abstraction method for sockets ( .send() ) that checks if
-				// a socket is connected and if it is not, adds the message to the respective buffer
-				// (to prevent code duplication)
 
 				// if socket 1 is not connected, set the sending socket to be client 1's new socket
 				if (!clientPair.client1.socket.connected) {
@@ -451,9 +412,8 @@ function sendBufferToClient(socket, buffer, clientPair) {
 	while (buffer.length !== 0) {
 		let bufferedMessage = buffer.shift();
 		socket.emit(bufferedMessage[0], bufferedMessage[1]);
-		// TODO update the lastUsed variable every time a message is sent throught the socker,
-		// or
-		// once before the while and once after?
+
+		// update the lastUsed variable every time a message is sent throught the socket,
 		clientPair.lastUsed = Date.now();
 	}
 }
@@ -498,7 +458,7 @@ function garbageCollect() {
 
 			// close any remaining sockets
 			if (client1 && client1.socket) {
-				client1.socket.emit("connectionClosed");	// TODO implement on client -> open a static page with a message about the error
+				client1.socket.emit("connectionClosed");
 				client1.socket.disconnect(true);
 			}
 			if (client2 && client2.socket) {
@@ -506,7 +466,7 @@ function garbageCollect() {
 				client2.socket.disconnect(true);
 			}
 
-			tokens[token] = null;			// TODO is it necessary?
+			tokens[token] = null;
 			delete tokens[token];
 
 			console.log("\n[GARBAGE COLLECTED]: Connection with token", token, "\nWas active for:", new Date(now - lastUsed).toISOString().slice(11, -1), "\nTokens list:", tokens);
