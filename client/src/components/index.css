@@ -13,6 +13,13 @@ body {
   background-color: #282c34;
 }
 
+/* bigger displays that are not touchscreen should be scrollable */
+@media not screen and (max-device-width: 768px) and (pointer:coarse) {
+  body {
+    overflow: auto;
+  }
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
@@ -55,7 +62,7 @@ code {
   margin-left: 15%;
 }
 
-.input {
+#input {
   flex: 4;
   border: none;
   font-size: 14px;
@@ -68,7 +75,7 @@ code {
   outline: none;
 }
 
-.input::placeholder {
+#input::placeholder {
   opacity: 0.7;
 }
 

@@ -5,8 +5,8 @@ import { toBase64 } from "./util.js";
 export default class ComposeView extends React.Component {
   sendMessage = (event) => {
     var addMessageToView = this.props.getFunctionFromState();
-    // TODO make the "input" class an id?
-    var message = document.getElementsByClassName("input")[0].value;
+
+    var message = document.getElementById("input").value;
     if (message === null || message === "") {
       return;
     }
@@ -63,7 +63,7 @@ export default class ComposeView extends React.Component {
       addMessageToView(messageToAdd);
 
       // clear the input
-      document.getElementsByClassName("input")[0].value = "";
+      document.getElementById("input").value = "";
 
       // auto scroll when a new message is added to the view
       // TODO don't scroll if user has scrolled up
@@ -81,9 +81,11 @@ export default class ComposeView extends React.Component {
       <div className = "compose">
         <input
          type="text"
-         className="input"
+         id="input"
          placeholder="Message"
+         name="message"
          onKeyDown={this.sendMessage}
+         autoFocus
        />
         <SendButton sendMessage = {this.sendMessage}/>
       </div>
