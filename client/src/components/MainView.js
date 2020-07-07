@@ -32,12 +32,12 @@ export default class MainView extends React.Component {
   }
 
   componentDidMount() {
-    // TODO not working for 'back' button
-    // TODO is it even useful ?
+    // not working for 'back' button
+    // is it even useful ?
     // https://github.com/zeit/next.js/issues/2694
 
-    // Enable navigation prompt
-    // TODO if you decide to add it, properly remove the event handler in componentWillUnmount
+    // TODO Enable navigation prompt
+    // if you decide to add it, properly remove the event handler in componentWillUnmount
     // window.onbeforeunload = function() {
     //   return true;
     // };
@@ -68,8 +68,7 @@ export default class MainView extends React.Component {
           token: connectionInformation.token
         });
       }, 2000);
-      // TODO it is probably better to call this.setState() only once in the whole method
-      // TODO now if a user disconnects during the initial handshake, the connection cannot be established
+
       this.setState({
         pingServerInterval: pingServer
       });

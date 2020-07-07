@@ -82,7 +82,6 @@ export default class MessagesView extends React.Component {
   }
 
   componentDidMount() {
-    // TODO ajax - https://reactjs.org/docs/faq-ajax.html
     var newMessage = {
       5: {
         message: "my new message",
@@ -94,8 +93,8 @@ export default class MessagesView extends React.Component {
     this.handler = (event) => {
         var messageToAdd = event.detail.messageToAdd;
         // messageToAdd's id must be unique and follow the order of the this.state.messagesJson object's keys
-                      // get the key of the object with the highest key
-        var nextId = parseInt(Object.keys(this.state.messagesJson).reduce((a, b) => messageToAdd[a] > messageToAdd[b] ? a : b)) + 1;   // TODO is it unique?
+                      // get the key of the object with the highest key                                                  and increment it
+        var nextId = parseInt(Object.keys(this.state.messagesJson).reduce((a, b) => messageToAdd[a] > messageToAdd[b] ? a : b)) + 1;
 
         // change the old "messageId" key to be nextId, so that the id is a unique number and can be displayed
         if ("messageId" !== nextId) {
@@ -171,7 +170,6 @@ export default class MessagesView extends React.Component {
 }
 
 function Message(props) {
-    // TODO also css classes for start and end sequence of messages?
     return (
       <div className = "messageContiner">
         <div className = {`message${ props.mine ? ' mine' : '' }`}>

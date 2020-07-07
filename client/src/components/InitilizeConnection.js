@@ -38,19 +38,6 @@ export default class InitilizeConnection extends React.Component {
           // state: {token: "do i need a state?"}
         });
 
-        // setTimeout(()=> {
-        //   let query = new URLSearchParams(this.props.location.search);
-        //   let secret = document.getElementById("secret").value;
-        //   this.publicKeyExchange(this.state.pub, query.get("token"), secret).catch(err => {
-        //       console.log(err);
-        //       this.props.history.push("/invalid_token");
-        //     });
-
-        //   // TODO open socket here and wait for the other client to also join
-
-        //   this.props.history.push(to)
-        // }, 5000);
-
         // get the socket provided by the parent component
         var socket = this.props.socket;
 
@@ -96,8 +83,8 @@ export default class InitilizeConnection extends React.Component {
 
             // TODO ? forge can generate a 'password' based key:
             /* alternatively, generate a password-based 16-byte key
-            var salt = forge.random.getBytesSync(128);
-            var key = forge.pkcs5.pbkdf2('password', salt, numIterations, 16);
+              var salt = forge.random.getBytesSync(128);
+              var key = forge.pkcs5.pbkdf2('password', salt, numIterations, 16);
             */
             // ^ Taken from the documentation
             if (buffer) {
@@ -382,7 +369,6 @@ export default class InitilizeConnection extends React.Component {
     return body;
   }
 
-  // TODO code duplication!
   // get a token from the server
   getToken = async () => {
     const response = await fetch("/generate_token");
@@ -405,34 +391,6 @@ export default class InitilizeConnection extends React.Component {
 
     return body;
   }
-
-  // callApi = async () => {
-  //   const response = await fetch("/api");
-  //   const body = await response.json();
-
-  //   if (response.status !== 200) {
-  //     throw Error(body.message);
-  //   }
-
-  //   return body;
-  // }
-
-  // publicKeyExchange = async (publicKey, token, secret) => {
-  //   const  requestOptions = {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' , 'Connection': 'close'},
-  //     body: JSON.stringify({ publicKey: publicKey, token: token, secret: secret })
-  //   }
-
-  //   const response = await fetch('/send_key', requestOptions);
-  //   const body = await response.json();
-
-  //   if (response.status !== 200) {
-  //     throw Error(body.message);
-  //   }
-
-  //   return body;
-  // }
 
   render() {
     // TODO more readability at the cost of a little code duplication; it is worth it?
