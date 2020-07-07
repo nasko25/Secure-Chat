@@ -20,8 +20,7 @@ export default class InitilizeConnection extends React.Component {
     // set a flag indicating that the client is waiting for the second client's response
     this.setState({initiatingConnection: true});
     // start the "loading" animation
-    // TODO id instead of class?
-    document.getElementsByClassName("readyLink")[0].style.display = "none";
+    document.getElementById("readyLink").style.display = "none";
     document.getElementById("load").style.display = "inline-block";
 
     // prevents the default behavior of clicking on a button
@@ -136,9 +135,6 @@ export default class InitilizeConnection extends React.Component {
   // this is called whenever the second client loads this page (happens when a valid token is passed as a 
   // query parameter)
   secondClientConnect = () => {
-
-    // document.getElementsByClassName("readyLink")[0].style.display = "none";
-    // document.getElementById("load").style.display = "inline-block";
 
     var socket = this.props.socket;
 
@@ -390,7 +386,7 @@ export default class InitilizeConnection extends React.Component {
         document.getElementById("load").style.display = "none";
 
         readyLink = (
-          <Link className="readyLink" to = "chat" onClick={(event) => this.initiateConnection({ pathname: `chat`, /* hash: `#hash`, */ }, event)}> Ready </Link>
+          <Link id="readyLink" to = "chat" onClick={(event) => this.initiateConnection({ pathname: `chat`, /* hash: `#hash`, */ }, event)}> Ready </Link>
         );
       }         // document.getElementById("load") should not be null
       else if (document.getElementById("load")) {
@@ -433,7 +429,7 @@ export default class InitilizeConnection extends React.Component {
         document.getElementById("load").style.display = "none";
 
         connectBtn = (
-          <Link className="readyLink" to = "chat" onClick = {(event) => this.secondClientApprove({ pathname: `chat`}, event) }> Connect </Link>
+          <Link id="readyLink" to = "chat" onClick = {(event) => this.secondClientApprove({ pathname: `chat`}, event) }> Connect </Link>
         );
       } else {
         // show the "loading" animation as the public key of the other client is still missing

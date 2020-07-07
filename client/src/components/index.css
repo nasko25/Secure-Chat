@@ -160,7 +160,7 @@ code {
   padding-top: 1em;
 }
 
-.readyLink {
+#readyLink {
   color: white;
   text-transform: uppercase;
   text-decoration: none;
@@ -172,7 +172,7 @@ code {
   transition: all 0.4s ease 0s;
 }
 
-.readyLink:hover {
+#readyLink:hover {
   color: #282c34;
   background: #f6b93b;
   border-color: #f6b93b;
@@ -181,7 +181,7 @@ code {
 
 /*TODO remove */
 /* if readyLink is a div*/
-div.readyLink {
+div#readyLink {
   margin-top: 1em;
   margin-bottom: 1em;
   cursor: pointer;
