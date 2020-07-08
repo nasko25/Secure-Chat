@@ -3,28 +3,18 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Redirect,
-  withRouter
+  Redirect
 } from "react-router-dom";
-import InitilizeConnection from "./InitilizeConnection.js";
-import MainView from "./MainView.js";
 import InvalidToken from "./InvalidToken.js";
 import NotFound from "./NotFound.js";
 import ConnectionClosed from "./ConnectionClosed.js";
+import { socket, MainViewWithRouter, InitilizeConnectionWithRouter } from "./Utils.js";
 import './index.css';
-import io from 'socket.io-client';
-
-// TODO might put them in separate modules or one separate module
-const socket = io();
-
-const MainViewWithRouter = withRouter(MainView);                // TODO do the same for InitilizeConnection, when you put it in a separate module
 
 export default class App extends React.Component {
   // constructor to set up the state
   constructor(props) {
     super(props);
-
-    const InitilizeConnectionWithRouter =  withRouter(InitilizeConnection);
 
     this.state = {
       InitilizeConnectionWithRouter: InitilizeConnectionWithRouter
