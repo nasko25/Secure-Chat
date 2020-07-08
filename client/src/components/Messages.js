@@ -97,37 +97,45 @@ export default class MessagesView extends React.Component {
         var encryptionKey = this.props.encryptionKey;
         // if the encryption key was set
         if (encryptionKey) {
-          // get the encryption key and the iv from the parameters passed from the parent component to encrypt the message to the other client
-          // the encryption key was converted to a hex string representation, so now it should be converted to a byte representation
-          var key = forge.util.hexToBytes(encryptionKey);
-          var iv = this.props.iv;
+          try {
+            // get the encryption key and the iv from the parameters passed from the parent component to encrypt the message to the other client
+            // the encryption key was converted to a hex string representation, so now it should be converted to a byte representation
+            var key = forge.util.hexToBytes(encryptionKey);
+            var iv = this.props.iv;
 
-          // get the byte representation of the message from its receieved hex representation
-          var encrypted = data.message.message;
-          // decipher the message
-          var decipher = forge.cipher.createDecipher('AES-CBC', key);
-          decipher.start({iv: iv});console.log(encrypted)
-          decipher.update(forge.util.createBuffer(forge.util.hexToBytes(encrypted)));
-          var result = decipher.finish();
-          // if there was a problem with the decrypting
-          if (!result) {
-            console.error("There was an error with decrypting");
-          }
-          data.message.message = fromBase64(decipher.output.data);
-          // add the message received from the server to the view
-          this.addMessageToView({
-            "messageId": data.message
-          });
-
-          // autoscroll if the user has not manually scrolled up
-          setTimeout(function() {
-            var scrollView = document.getElementById("messagesView");
-
-            // if the client has not scrolled up, autoscroll is activated
-            if (Math.abs(scrollView.scrollTop - scrollView.scrollHeight) <= (scrollView.clientHeight + 44.5)) {   // TODO 44.5 - magic value (document.getElementsByClassName("compose")[0].clientHeight ?)
-              scrollView.scrollTop = scrollView.scrollHeight;
+            // get the byte representation of the message from its receieved hex representation
+            var encrypted = data.message.message;
+            // decipher the message
+            var decipher = forge.cipher.createDecipher('AES-CBC', key);
+            decipher.start({iv: iv});console.log(encrypted)
+            decipher.update(forge.util.createBuffer(forge.util.hexToBytes(encrypted)));
+            var result = decipher.finish();
+            // if there was a problem with the decrypting
+            if (!result) {
+              console.error("There was an error with decrypting");
+              this.props.redirectToConnectionInterrupted();
             }
-          }, 100);
+            data.message.message = fromBase64(decipher.output.data);
+            // add the message received from the server to the view
+            this.addMessageToView({
+              "messageId": data.message
+            });
+
+            // autoscroll if the user has not manually scrolled up
+            setTimeout(function() {
+              var scrollView = document.getElementById("messagesView");
+
+              // if the client has not scrolled up, autoscroll is activated
+              if (Math.abs(scrollView.scrollTop - scrollView.scrollHeight) <= (scrollView.clientHeight + 44.5)) {   // TODO 44.5 - magic value (document.getElementsByClassName("compose")[0].clientHeight ?)
+                scrollView.scrollTop = scrollView.scrollHeight;
+              }
+            }, 100);
+          }
+          catch(err) {
+            console.error("There was an error with decrypting");
+            console.error(err);
+            this.props.redirectToConnectionInterrupted();
+          }
         }
       });
     }

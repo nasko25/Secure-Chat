@@ -31,6 +31,13 @@ export default class MainView extends React.Component {
     return this.addMessageToView;
   }
 
+  /*
+    It is used by MessagesView to redirect to /connection_interrupted if it cannot decrypt a message from the other client.
+  */
+  redirectToConnectionInterrupted() {
+    this.props.history.push("/connection_interrupted");
+  }
+
   componentDidMount() {
     // not working for 'back' button
     // is it even useful ?
@@ -82,8 +89,12 @@ export default class MainView extends React.Component {
   render() {
     return (
       <div className = "mainView"> <meta name = "viewport" content = "width=device-width user-scalable=no"/> { /* a meta tag that prevents automatic zooming on mobile when users start typing a message */ }
-        <MessagesView setParentReference = { this.addFunctionToState.bind(this) } encryptionKey = { this.state.key } token = { this.state.token } socket = { this.state.socket } iv = {this.state.iv}/>
-        <ComposeView getFunctionFromState = { this.getFunctionFromState.bind(this) } encryptionKey = { this.state.key} token = {this.state.token} socket = { this.state.socket } iv = {this.state.iv}/>
+        <MessagesView setParentReference = { this.addFunctionToState.bind(this) } encryptionKey = { this.state.key }
+          token = { this.state.token } socket = { this.state.socket } iv = {this.state.iv}
+          redirectToConnectionInterrupted = { this.redirectToConnectionInterrupted.bind(this) }/>
+
+        <ComposeView getFunctionFromState = { this.getFunctionFromState.bind(this) } encryptionKey = { this.state.key}
+          token = {this.state.token} socket = { this.state.socket } iv = {this.state.iv}/>
       </div>
     );
   };
