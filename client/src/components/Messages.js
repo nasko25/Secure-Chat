@@ -118,6 +118,16 @@ export default class MessagesView extends React.Component {
           this.addMessageToView({
             "messageId": data.message
           });
+
+          // autoscroll if the user has not manually scrolled up
+          setTimeout(function() {
+            var scrollView = document.getElementById("messagesView");
+
+            // if the client has not scrolled up, autoscroll is activated
+            if (Math.abs(scrollView.scrollTop - scrollView.scrollHeight) <= (scrollView.clientHeight + 44.5)) {   // TODO 44.5 - magic value (document.getElementsByClassName("compose")[0].clientHeight ?)
+              scrollView.scrollTop = scrollView.scrollHeight;
+            }
+          }, 100);
         }
       });
     }
