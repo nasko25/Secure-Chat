@@ -161,7 +161,7 @@ export default class InitilizeConnection extends React.Component {
           // set the this.state.otherClientPublicKeyPem with the public key of client 1
           this.setState({otherClientPublicKeyPem: data.publicKey});
         } else {           // redirect if the signed secret and plain secret do not match
-          this.props.history.push("/connection_interrupted");       // TODO create this page
+          this.props.history.push("/connection_interrupted");
         }
       } catch(err) {
         this.props.history.push("/connection_interrupted");

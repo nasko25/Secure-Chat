@@ -8,6 +8,7 @@ import {
 import InvalidToken from "./InvalidToken.js";
 import NotFound from "./NotFound.js";
 import ConnectionClosed from "./ConnectionClosed.js";
+import ConnectionInterrupted from "./ConnectionInterrupted.js";
 import { socket, MainViewWithRouter, InitilizeConnectionWithRouter } from "./Utils.js";
 import './index.css';
 
@@ -57,6 +58,9 @@ export default class App extends React.Component {
           </Route>
           <Route path = "/connection_closed">
             <ConnectionClosed />
+          </Route>
+          <Route path = "/connection_interrupted">
+            <ConnectionInterrupted />
           </Route>
           <Route path = "/not_found">
             <NotFound />
