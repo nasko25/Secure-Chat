@@ -70,7 +70,13 @@ export default class ComposeView extends React.Component {
       // TODO this looks like a hacky solution ?
       setTimeout(function() {
         var scrollView = document.getElementById("messagesView");
-        scrollView.scrollTop = scrollView.scrollHeight;
+        console.log("top:", scrollView.scrollTop, "height:", scrollView.scrollHeight, "diff =", scrollView.scrollTop-scrollView.scrollHeight)
+        console.log("client height of scroll view:", scrollView.clientHeight);
+        // if the client has not scrolled up, autoscroll is activated
+        if (Math.abs(scrollView.scrollTop - scrollView.scrollHeight) <= (scrollView.clientHeight + 44.5)) {   // TODO 44.5 - magic value (document.getElementsByClassName("compose")[0].clientHeight ?)
+          console.log("smaller");
+          scrollView.scrollTop = scrollView.scrollHeight;
+        }
       }, 100);
     }
   }
