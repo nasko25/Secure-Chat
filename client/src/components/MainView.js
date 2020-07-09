@@ -43,14 +43,10 @@ export default class MainView extends React.Component {
     // is it even useful ?
     // https://github.com/zeit/next.js/issues/2694
 
-    // TODO Enable navigation prompt
-    // if you decide to add it, properly remove the event handler in componentWillUnmount
+    // Enable navigation prompt (if you enable it, don't forget to disable it in componentWillUnmount)
     // window.onbeforeunload = function() {
     //   return true;
     // };
-
-    // Remove navigation prompt
-    // window.onbeforeunload = null;
 
     // get the connection information from the parent
     const connectionInformation = this.props.getConnectionInformation();
@@ -100,6 +96,9 @@ export default class MainView extends React.Component {
   };
 
   componentWillUnmount() {
+    // Remove navigation prompt
+    // window.onbeforeunload = null;
+
     clearInterval(this.state.pingServerInterval);
   }
 }
