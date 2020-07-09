@@ -44,6 +44,7 @@ export default class MainView extends React.Component {
     // https://github.com/zeit/next.js/issues/2694
 
     // Enable navigation prompt (if you enable it, don't forget to disable it in componentWillUnmount)
+    // the navigation prompt asks if the user is sure he/she wants to close the page
     // window.onbeforeunload = function() {
     //   return true;
     // };
