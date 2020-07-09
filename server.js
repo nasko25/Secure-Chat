@@ -17,7 +17,13 @@ const forge = require("node-forge");
 	Maximum time allowed for a connection to stay alive in milliseconds.
 	Used for garbage collection.
 */
-const GARB_MAX_TIME_ALLOWED = 20 * 60 * 60 * 1000 // 20 hours
+const GARB_MAX_TIME_ALLOWED = 20 * 60 * 60 * 1000; // 20 hours
+
+/*
+	Maximum time allowed for a connection to stay alive after the first buffered message in milliseconds.
+	Used for garbage collection.
+*/
+const GARB_MAX_BUFFER_TIME_ALLOWED = 5 * 60 * 1000; // 5 minutes
 
 /*
 	Represents the two clients in the communication.
@@ -57,7 +63,9 @@ function Client(publicKey, socket) {
 		but I assume that since they know each other, the initiator client can choose some secret that will prove his/hers authenticity.
 
 	* number of connections, as there can be at most 2 parties in the connection
-	* a last used timestamp, which will later be used to close unused connections
+	* a last used timestamp, which is used to close unused connections
+	* a lastBuffered timestamp, which is used to keep track how long the server has been buffering messages;
+		if it is too long, the connection will be closed
 */
 function ClientPair(client1, client2, secret) {
 	this.client1 = client1;
@@ -66,14 +74,12 @@ function ClientPair(client1, client2, secret) {
 	this.plainTextSecret = null;
 	this.connections = 0;
 	this.lastUsed = Date.now();
+	this.lastBuffered = null;
 }
 
 // TODO null checks
 
 // TODO if a client gives a token that does not exist, close the socket (and maybe the other socket connected to it too?):
-/* TODO send a socket message on componentWillUnmount() that notifies the server that the client will disconnect?
-	and then notify the other client about it as well, so they can close the connection and inform the client
-*/
 // TODO production: https://create-react-app.dev/docs/deployment/
 /* TODO reliable message delivery and buffer messages on the client ?
 	(and buffer messages on the server better - after implementing reliable socket message delivery - ACKs)
@@ -409,6 +415,8 @@ io.on("connection", (socket) => {
 		* lastUsed		   - contains the Date when the sockets were last used (used for garbage collecting dead connections)
 */
 function sendBufferToClient(socket, buffer, clientPair) {
+	// reset the clientPair.lastBuffered variable to null, because the client is online
+	clientPair.lastBuffered = null;
 	while (buffer.length !== 0) {
 		let bufferedMessage = buffer.shift();
 		socket.emit(bufferedMessage[0], bufferedMessage[1]);
@@ -435,6 +443,11 @@ function sendToClientOrBuffer(socket, buffer, eventName, data, clientPair) {
 		socket.emit(eventName, data);
 	} // otherwise buffer the eventName and data to be sent later
 	else {
+		// if the clientPair.lastBuffered variable is null, set it to the time now, so the server can keep track of how long the client has been disconnected
+		if (clientPair.lastBuffered === null) {
+			clientPair.lastBuffered = Date.now();
+		}
+
 		buffer.push([
 			eventName,
 			data
@@ -450,8 +463,15 @@ function garbageCollect() {
 	for (var token in tokens) {
 		var clientPair = tokens[token];
 		var lastUsed = clientPair.lastUsed;
+		var lastBuffered = clientPair.lastBuffered;
 		var now = Date.now();
-		if (now - lastUsed > GARB_MAX_TIME_ALLOWED) {
+		// if too much time has passed without the connection being used,
+		// or the server has been buffering messages for too long
+		// close the connections and free the resources
+		if (
+			(now - lastUsed > GARB_MAX_TIME_ALLOWED) ||
+			(lastBuffered !== null && (now - lastBuffered) > GARB_MAX_BUFFER_TIME_ALLOWED)
+		) {
 			// free the resources
 			var client1 = clientPair.client1;
 			var client2 = clientPair.client2;
