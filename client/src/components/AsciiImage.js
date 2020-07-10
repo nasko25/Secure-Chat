@@ -1,4 +1,5 @@
 import React from 'react';
+import {isMobile} from 'react-device-detect';
 
 export default class AsciiImage extends React.Component {
     constructor(props) {
@@ -139,41 +140,41 @@ export default class AsciiImage extends React.Component {
 <span className = "invisible">|</span>                  `---'`   `'----'`                                              <br/>
 </pre>),
 (<pre>
-<span className = "invisible">|</span>                 ____==========_______              <br/>
-<span className = "invisible">|</span>      _--____   |    | ""  " "|       \             <br/>
-<span className = "invisible">|</span>     /  )8&#125;  ^^^| 0  |  =     |  o  0  |            <br/>
-<span className = "invisible">|</span>   &lt;/_ +-==B vvv|""  |  =     | '  "" "|            <br/>
-<span className = "invisible">|</span>      \_____/   |____|________|________|            <br/>
-<span className = "invisible">|</span>               (_(  )\________/___(  )__)           <br/>
-<span className = "invisible">|</span>                 |\  \            /  /\             <br/>
-<span className = "invisible">|</span>                 | \  \          /  /\ \            <br/>
-<span className = "invisible">|</span>                 | |\  \        /  /  \ \           <br/>
-<span className = "invisible">|</span>                 (  )(  )       (  \   (  )         <br/>
-<span className = "invisible">|</span>                  \  / /        \  \   \  \         <br/>
-<span className = "invisible">|</span>                   \|  |\        \  \  |  |         <br/>
-<span className = "invisible">|</span>                    |  | )____    \  \ \  )___      <br/>
-<span className = "invisible">|</span>                    (  )  /  /    (  )  (/  /       <br/>
-<span className = "invisible">|</span>                   /___\ /__/     /___\ /__/        <br/>
+<span className = "invisible">|</span>              ____==========_______           <br/>
+<span className = "invisible">|</span>   _--____   |    | ""  " "|       \          <br/>
+<span className = "invisible">|</span>  /  )8&#125;  ^^^| 0  |  =     |  o  0  |         <br/>
+<span className = "invisible">|</span>&lt;/_ +-==B vvv|""  |  =     | '  "" "|         <br/>
+<span className = "invisible">|</span>   \_____/   |____|________|________|         <br/>
+<span className = "invisible">|</span>            (_(  )\________/___(  )__)        <br/>
+<span className = "invisible">|</span>              |\  \            /  /\          <br/>
+<span className = "invisible">|</span>              | \  \          /  /\ \         <br/>
+<span className = "invisible">|</span>              | |\  \        /  /  \ \        <br/>
+<span className = "invisible">|</span>              (  )(  )       (  \   (  )      <br/>
+<span className = "invisible">|</span>               \  / /        \  \   \  \      <br/>
+<span className = "invisible">|</span>                \|  |\        \  \  |  |      <br/>
+<span className = "invisible">|</span>                 |  | )____    \  \ \  )___   <br/>
+<span className = "invisible">|</span>                 (  )  /  /    (  )  (/  /    <br/>
+<span className = "invisible">|</span>                /___\ /__/     /___\ /__/     <br/>
 </pre>),
 (<pre>
-<span className = "invisible">|</span>                 |||      |||                   <br/>
-<span className = "invisible">|</span>                 | |  __  | |                   <br/>
-<span className = "invisible">|</span>  |-|_____-----/   |_|  |_|   \-----_____|-|    <br/>
-<span className = "invisible">|</span>  |_|_________&#123;   &#125;|  (^) |&#123;  &#125;__________|_|    <br/>
-<span className = "invisible">|</span>   ||          |_| |   ^  | |_|          ||     <br/>
-<span className = "invisible">|</span>   |              \|  /\  |/              |     <br/>
-<span className = "invisible">|</span>   |               \ |--| /               |     <br/>
-<span className = "invisible">|</span>   =               \ |__| /               =     <br/>
-<span className = "invisible">|</span>   +               \      /               +     <br/>
-<span className = "invisible">|</span>                    \    /                      <br/>
-<span className = "invisible">|</span>                    \    /                      <br/>
-<span className = "invisible">|</span>                     \  /                       <br/>
-<span className = "invisible">|</span>                     \  /                       <br/>
-<span className = "invisible">|</span>                     \  /                       <br/>
-<span className = "invisible">|</span>                     \  /                       <br/>
-<span className = "invisible">|</span>                     \  /                       <br/>
-<span className = "invisible">|</span>                     \  /                       <br/>
-<span className = "invisible">|</span>                      \/                        <br/>
+<span className = "invisible">|</span>               |||      |||               <br/>
+<span className = "invisible">|</span>               | |  __  | |               <br/>
+<span className = "invisible">|</span>|-|_____-----/   |_|  |_|   \-----_____|-|<br/>
+<span className = "invisible">|</span>|_|_________&#123;   &#125;|  (^) |&#123;  &#125;__________|_|<br/>
+<span className = "invisible">|</span> ||          |_| |   ^  | |_|          || <br/>
+<span className = "invisible">|</span> |              \|  /\  |/              | <br/>
+<span className = "invisible">|</span> |               \ |--| /               | <br/>
+<span className = "invisible">|</span> =               \ |__| /               = <br/>
+<span className = "invisible">|</span> +               \      /               + <br/>
+<span className = "invisible">|</span>                  \    /                  <br/>
+<span className = "invisible">|</span>                  \    /                  <br/>
+<span className = "invisible">|</span>                   \  /                   <br/>
+<span className = "invisible">|</span>                   \  /                   <br/>
+<span className = "invisible">|</span>                   \  /                   <br/>
+<span className = "invisible">|</span>                   \  /                   <br/>
+<span className = "invisible">|</span>                   \  /                   <br/>
+<span className = "invisible">|</span>                   \  /                   <br/>
+<span className = "invisible">|</span>                    \/                    <br/>
 </pre>),
 (<pre>
 <span className = "invisible">|</span>                                                          /\                     <br/>
@@ -228,9 +229,19 @@ export default class AsciiImage extends React.Component {
     }
 
     componentDidMount() {
-        // choose a random ascii image from the array
+        var index = 0;
+        // if it is mobile, only images 1, 4 and 5 are small enough
+        if (isMobile) {
+            var mobileFriendlyIndexes = [1, 4, 5];
+            var mobileIndex = Math.floor(Math.random() * Math.floor(mobileFriendlyIndexes.length));
+            index = mobileFriendlyIndexes[mobileIndex];
+        }
+        else {
+            // choose a random ascii image from the array
+            index = Math.floor(Math.random() * Math.floor(this.images.length));
+        }
         this.setState({
-            index: Math.floor(Math.random() * Math.floor(this.images.length))
+            index: index
         });
     }
     render() {
