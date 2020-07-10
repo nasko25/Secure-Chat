@@ -166,7 +166,6 @@ export default class MessagesView extends React.Component {
 <br/>
 <br/>
 <br/>
-
            .--'''''''''--.<br/>
         .'      .---.      '.<br/>
        /    .-----------.    \<br/>
@@ -205,6 +204,36 @@ export default class MessagesView extends React.Component {
          /o`.-'  / \  `-.`o\<br/>
         /o  o\ .'   `. /o  o\<br/>
         `.___.'       `.___.'<br/>
+<br/>
+<br/>
+<br/> {/* All lines of the ascii image should have the same length, otherwise it might not load properly ! */}
+!                      _____                        !<br/>
+!                   ,-'     `._                     !<br/>
+!                 ,'           `.        ,-.        !<br/>
+!               ,'               \       ),.\       !<br/>
+!     ,.       /                  \     /(  \;      !<br/>
+!    /'\\     ,o.        ,ooooo.   \  ,'  `-')      !<br/>
+!    )) )`. d8P"Y8.    ,8P"""""Y8.  `'  .--"'       !<br/>
+!   (`-'   `Y'  `Y8    dP       `'     /            !<br/>
+!    `----.(   __ `    ,' ,---.       (             !<br/>
+!           ),--.`.   (  ;,---.        )            !<br/>
+!          / \O_,' )   \  \O_,'        |            !<br/>
+!         ;  `-- ,'       `---'        |            !<br/>
+!         |    -'         `.           |            !<br/>
+!        _;    ,            )          :            !<br/>
+!     _.'|     `.:._   ,.::" `..       |            !<br/>
+!  --'   |   .'     """         `      |`.          !<br/>
+!        |  :;      :   :     _.       |`.`.-'--.   !<br/>
+!        |  ' .     :   :__.,'|/       |  \         !<br/>
+!        `     \--.__.-'|_|_|-/        /   )        !<br/>
+!         \     \_   `--^"__,'        ,    |        !<br/>
+!   -hrr- ;  `    `--^---'          ,'     |        !<br/>
+!          \  `                    /      /         !<br/>
+!           \   `    _ _          /                 !<br/>
+!            \           `       /                  !<br/>
+!             \           '    ,'                   !<br/>
+!              `.       ,   _,'                     !<br/>
+!                `-.___.---'                        !<br/>
 </pre> </div>
         { this.renderAllMessages() }
       </div>
