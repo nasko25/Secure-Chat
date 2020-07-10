@@ -7,7 +7,7 @@ export default class AsciiImage extends React.Component {
         this.state = {
             index: 0
         };
-        /* 
+        /*
             All lines of the ascii image should have the same length, otherwise the image might not load properly !
             Also for some reason, they need a character in the very beginning or they are not aligned properly.
             But this character can be transparent ( or even "display:none;" ! - tested on Chrome )

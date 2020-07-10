@@ -143,7 +143,6 @@ export default class MessagesView extends React.Component {
   }
 
   // TODO display times?
-  // TODO random ascii art and properly format/escape it
   // font-family: "Courier New", Courier, monospace;
   render() {
     return (
