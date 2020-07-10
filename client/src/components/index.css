@@ -331,3 +331,8 @@ div#readyLink {
 ::-webkit-scrollbar-thumb:active {
   background: #1E1F23;
 }
+
+.invisible {
+  color: transparent;
+  /* display: none; */ /* ??? */
+}
