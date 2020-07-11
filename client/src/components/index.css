@@ -122,6 +122,9 @@ code {
   /* float: right; */
   margin-left: auto;
 }
+.mine::selection {
+  background: #171765;
+}
 
 .fixedMargin {
   margin-left: 15px;
