@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import forge from "node-forge";
 import AsciiImage from "./AsciiImage.js";
 import { fromBase64 } from "./util.js";
@@ -49,11 +49,30 @@ export default class MessagesView extends React.Component {
     // list of messages to return
     var messages = [];
     for (var message in messagesJson) {
+      var time = messagesJson[message].time;
+      // if time is a not Dates object (happens for not "mine" messages)
+      if (!(time instanceof Date)) {
+        // then time will be an ISO string, so it has to be converted to a Date object
+        time = new Date(time);
+      }
+      var hours = time.getHours();
+      var minutes = time.getMinutes();
+      // add a leading 0 if hours < 10 and if minutes < 10
+      if (hours < 10) {
+        hours = "0" + hours;
+      }
+      if (minutes < 10) {
+        minutes = "0" + minutes;
+      }
+      // change the time to a HH:MM format string
+      time = hours + ":" + minutes;
+
       messages.push(
         <Message
           key = { message }
           message = { messagesJson[message].message }
           mine = { messagesJson[message].mine }
+          time = { time }
         />
       );
     }
@@ -142,7 +161,6 @@ export default class MessagesView extends React.Component {
     }
   }
 
-  // TODO display times?
   // font-family: "Courier New", Courier, monospace;
   render() {
     return (
@@ -161,11 +179,25 @@ export default class MessagesView extends React.Component {
 }
 
 function Message(props) {
+    const [isShown, setIsShown] = useState(false);
+
     return (
       <div className = "messageContiner">
-        <div className = {`message${ props.mine ? ' mine' : '' }`}>
+        { /* if the message is mine and you hover over it, display the time before the message (to the left of the message) */ }
+        { props.mine && isShown && (
+          <span className = "beforeMessage"> { props.time } </span>
+        ) }
+                  {/* if the message is "mine" add the "mine" class;  if it is both "mine" and the time should be shown, change the margin to be fixed */}
+        <div className = {`message${ props.mine ? ' mine' : '' }${ (props.mine && isShown) ? ' fixedMargin' : ''}`}
+          onMouseEnter={() => setIsShown(true)}
+          onMouseLeave={() => setIsShown(false)}
+        >
           { props.message }
         </div>
+        { /* if the message is NOT mine and you hover over it, display the time after the message (to the right of the message) */ }
+        { !props.mine && isShown && (
+          <span className = "afterMessage"> { props.time } </span>
+        ) }
       </div>
     );
 }
