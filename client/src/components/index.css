@@ -120,7 +120,11 @@ code {
   background: #007aff;
   color: inherit;
   /* float: right; */
-  /* margin-left: auto; */
+  margin-left: auto;
+}
+
+.fixedMargin {
+  margin-left: 15px;
 }
 
 /* ================================ time when the message was sent ===================================== */
@@ -139,6 +143,7 @@ code {
   transform: translateX(-50%); */
   /* margin:auto 0; */
   margin: auto 0;
+  font-size: 0.7em;
 }
 .beforeMessage {
   margin-left: auto;

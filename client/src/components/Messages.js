@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import forge from "node-forge";
 import AsciiImage from "./AsciiImage.js";
 import { fromBase64 } from "./util.js";
@@ -161,7 +161,6 @@ export default class MessagesView extends React.Component {
     }
   }
 
-  // TODO display times?
   // font-family: "Courier New", Courier, monospace;
   render() {
     return (
@@ -180,27 +179,25 @@ export default class MessagesView extends React.Component {
 }
 
 function Message(props) {
-    var afterMessage = "", beforeMessage = "";
-    // if the message is mine, display the time before the message (to the left of the message)
-    if (props.mine) {
-      afterMessage = "";
-      beforeMessage = (
-        <span className = "beforeMessage"> { props.time } </span>
-      );
-    }
-    else {
-      beforeMessage = "";
-      afterMessage = (
-        <span className = "afterMessage"> { props.time } </span>
-      );
-    }
+    const [isShown, setIsShown] = useState(false);
+
     return (
       <div className = "messageContiner">
-        { beforeMessage }
-        <div className = {`message${ props.mine ? ' mine' : '' }`}>
+        { /* if the message is mine and you hover over it, display the time before the message (to the left of the message) */ }
+        { props.mine && isShown && (
+          <span className = "beforeMessage"> { props.time } </span>
+        ) }
+                  {/* if the message is "mine" add the "mine" class;  if it is both "mine" and the time should be shown, change the margin to be fixed */}
+        <div className = {`message${ props.mine ? ' mine' : '' }${ (props.mine && isShown) ? ' fixedMargin' : ''}`}
+          onMouseEnter={() => setIsShown(true)}
+          onMouseLeave={() => setIsShown(false)}
+        >
           { props.message }
         </div>
-        { afterMessage }
+        { /* if the message is NOT mine and you hover over it, display the time after the message (to the right of the message) */ }
+        { !props.mine && isShown && (
+          <span className = "afterMessage"> { props.time } </span>
+        ) }
       </div>
     );
 }
