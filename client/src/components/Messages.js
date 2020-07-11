@@ -49,11 +49,30 @@ export default class MessagesView extends React.Component {
     // list of messages to return
     var messages = [];
     for (var message in messagesJson) {
+      var time = messagesJson[message].time;
+      // if time is a not Dates object (happens for not "mine" messages)
+      if (!(time instanceof Date)) {
+        // then time will be an ISO string, so it has to be converted to a Date object
+        time = new Date(time);
+      }
+      var hours = time.getHours();
+      var minutes = time.getMinutes();
+      // add a leading 0 if hours < 10 and if minutes < 10
+      if (hours < 10) {
+        hours = "0" + hours;
+      }
+      if (minutes < 10) {
+        minutes = "0" + minutes;
+      }
+      // change the time to a HH:MM format string
+      time = hours + ":" + minutes;
+
       messages.push(
         <Message
           key = { message }
           message = { messagesJson[message].message }
           mine = { messagesJson[message].mine }
+          time = { time }
         />
       );
     }
@@ -161,11 +180,27 @@ export default class MessagesView extends React.Component {
 }
 
 function Message(props) {
+    var afterMessage = "", beforeMessage = "";
+    // if the message is mine, display the time before the message (to the left of the message)
+    if (props.mine) {
+      afterMessage = "";
+      beforeMessage = (
+        <span className = "beforeMessage"> { props.time } </span>
+      );
+    }
+    else {
+      beforeMessage = "";
+      afterMessage = (
+        <span className = "afterMessage"> { props.time } </span>
+      );
+    }
     return (
       <div className = "messageContiner">
+        { beforeMessage }
         <div className = {`message${ props.mine ? ' mine' : '' }`}>
           { props.message }
         </div>
+        { afterMessage }
       </div>
     );
 }

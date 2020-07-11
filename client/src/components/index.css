@@ -97,7 +97,10 @@ code {
 
 .messageContiner {
   width: 100%;
-  display: inline-block;
+  /* display: inline-block;
+  position: relative; */
+  /* float: left; removes spaces between messages ( TODO look at error message ) */
+  display: flex;
 }
 
 .message {
@@ -109,13 +112,36 @@ code {
   width: fit-content;
   max-width: 70%;
   margin: 1px 15px;
-  overflow-wrap: break-word
+  overflow-wrap: break-word;
+  /* float:left; */
 }
 
 .mine {
   background: #007aff;
   color: inherit;
-  float: right;
+  /* float: right; */
+  /* margin-left: auto; */
+}
+
+/* ================================ time when the message was sent ===================================== */
+.beforeMessage, .afterMessage {
+  /* display: none; */
+  /* display: inline;
+  margin: auto;
+  text-align: center;
+  vertical-align: middle; */
+  /* position: absolute;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%); */
+  /* position: relative;
+  top: 50%;
+  transform: translateX(-50%); */
+  /* margin:auto 0; */
+  margin: auto 0;
+}
+.beforeMessage {
+  margin-left: auto;
 }
 
 /* ================================================================================ */
