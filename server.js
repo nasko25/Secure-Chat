@@ -25,6 +25,14 @@ const GARB_MAX_TIME_ALLOWED = 20 * 60 * 60 * 1000; // 20 hours
 */
 const GARB_MAX_BUFFER_TIME_ALLOWED = 5 * 60 * 1000; // 5 minutes
 
+// TODO
+/*
+	This constant variable will determine how verbose the output of the server is.
+	If it is true, more information will be output to the console.
+	The variable does not affect the output of errors. Errors will be displayed no matter what this variable is.
+*/
+const DEBUG = true;
+
 /*
 	Represents the two clients in the communication.
 	Both of them need to share their public key and the
@@ -157,17 +165,6 @@ app.get("/generate_token", (req, res) => {
 	});
 });
 
-// app.get("/forge/prime.worker.js", (req, res) => {
-// 	fs.readFile("prime.worker.js", (err, data)=>{
-// 		if (err) {
-// 			console.log(err);
-// 			return;
-// 		}
-// 		res.type(".js")
-// 		res.send(data);
-// 	});
-// });
-
 // listen for socket.io connections
 io.on("connection", (socket) => {
 	// if a client is connected
@@ -245,8 +242,15 @@ io.on("connection", (socket) => {
 			socket.emit("invalidToken");
 		} else {
 			var clientPair = tokens[token];
-			// notify client 1 that client 2 approved the connection and has connected
-			sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "clientConnected", {}, clientPair);
+			// clientPair and client1 should not be null
+			if (clientPair && clientPair.client1) {
+				// notify client 1 that client 2 approved the connection and has connected
+				sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "clientConnected", {}, clientPair);
+			}
+			else {
+				socket.emit("connectionClosed");
+				console.error("clientPair or client 1 was undefined", clientPair);
+			}
 		}
 	});
 
@@ -257,13 +261,18 @@ io.on("connection", (socket) => {
 
 		var clientPair = tokens[token];
 
-		console.log("first half send!")
-		// just forward the encrypted key to the second client
-		sendToClientOrBuffer(clientPair.client2.socket, clientPair.client2.buffer, "firstHalfKey", {
-			key: data.key,
-			iv: data.iv
-		},
-		clientPair);
+		if (clientPair && clientPair.client2) {
+			// just forward the encrypted key to the second client
+			sendToClientOrBuffer(clientPair.client2.socket, clientPair.client2.buffer, "firstHalfKey", {
+				key: data.key,
+				iv: data.iv
+			},
+			clientPair);
+			console.log("first half sent!");
+		}
+		else {
+			console.error("clientPair or client 2 was undefined:", clientPair);
+		}
 	});
 
 	// when the second client sends its part of the encryption key,
@@ -273,11 +282,17 @@ io.on("connection", (socket) => {
 
 		var clientPair = tokens[token];
 
-		sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "secondHalfKey", {
-			key: data.key,
-			iv: data.iv
-		},
-		clientPair);
+		if (clientPair && clientPair.client1) {
+			sendToClientOrBuffer(clientPair.client1.socket, clientPair.client1.buffer, "secondHalfKey", {
+				key: data.key,
+				iv: data.iv
+			},
+			clientPair);
+		}
+		else {
+			socket.emit("connectionClosed");
+			console.error("clientPair or client 1 was undefined:", clientPair)
+		}
 	});
 
 	// ping the server to update the socket and send any messages that are stored in the client buffers
@@ -332,7 +347,17 @@ io.on("connection", (socket) => {
 		var token = data.token;
 		var clientPair = tokens[token];
 
+		if (!clientPair || !clientPair.client1 || !clientPair.client2) {
+			socket.emit("connectionClosed");
+			console.error("clientPair or one of the clients was undefined - message", clientPair);
+			return;
+		}
+
 		var message = data.message;
+
+		if (!message) {
+			console.log("The client sent a forged data object:", "It does not have a message field");
+		}
 
 		// get the buffers that are used to store messages while users are offline
 		var client1Buffer = clientPair.client1.buffer;
@@ -415,6 +440,12 @@ io.on("connection", (socket) => {
 		* lastUsed		   - contains the Date when the sockets were last used (used for garbage collecting dead connections)
 */
 function sendBufferToClient(socket, buffer, clientPair) {
+	if (!socket || !buffer || !clientPair) {
+		console.error("[ERROR] Socket, clientPair or the buffer is undefined.");
+		console.log(socket, buffer, clientPair);
+		return;
+	}
+
 	// reset the clientPair.lastBuffered variable to null, because the client is online
 	clientPair.lastBuffered = null;
 	while (buffer.length !== 0) {
@@ -438,6 +469,13 @@ function sendBufferToClient(socket, buffer, clientPair) {
 		* lastUsed		   - contains the Date when the sockets were last used (used for garbage collecting dead connections)
 */
 function sendToClientOrBuffer(socket, buffer, eventName, data, clientPair) {
+	// if socket is null or undefined
+	if (!socket || !buffer || !clientPair) {
+		console.error("[ERROR] Socket, clientPair or the buffer is undefined.");
+		console.log(socket, buffer, eventName, data, clientPair);
+		return;
+	}
+
 	// if the socket is connected
 	if (socket.connected) {
 		socket.emit(eventName, data);
@@ -462,6 +500,10 @@ function sendToClientOrBuffer(socket, buffer, eventName, data, clientPair) {
 function garbageCollect() {
 	for (var token in tokens) {
 		var clientPair = tokens[token];
+		if (!clientPair) {
+			console.error("[ERROR] clientPair is undefined!");
+			return;
+		}
 		var lastUsed = clientPair.lastUsed;
 		var lastBuffered = clientPair.lastBuffered;
 		var now = Date.now();
@@ -473,6 +515,7 @@ function garbageCollect() {
 			(lastBuffered !== null && (now - lastBuffered) > GARB_MAX_BUFFER_TIME_ALLOWED)
 		) {
 			// free the resources
+
 			var client1 = clientPair.client1;
 			var client2 = clientPair.client2;
 
