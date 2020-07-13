@@ -25,7 +25,6 @@ const GARB_MAX_TIME_ALLOWED = 20 * 60 * 60 * 1000; // 20 hours
 */
 const GARB_MAX_BUFFER_TIME_ALLOWED = 5 * 60 * 1000; // 5 minutes
 
-// TODO
 /*
 	This constant variable will determine how verbose the output of the server is.
 	If it is true, more information will be output to the console.

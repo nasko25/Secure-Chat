@@ -68,6 +68,9 @@ export default class ComposeView extends React.Component {
       // auto scroll when a new message is added to the view
       setTimeout(function() {
         var scrollView = document.getElementById("messagesView");
+
+        // TODO if this is still an issue can make it a try-catch instead of an if
+        // (because last time the error was because the scrollView on the right side of the = sign was null)
         // scrollView should be defined
         if (scrollView) {
           scrollView.scrollTop = scrollView.scrollHeight;
