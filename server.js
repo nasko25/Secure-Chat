@@ -31,7 +31,7 @@ const GARB_MAX_BUFFER_TIME_ALLOWED = 5 * 60 * 1000; // 5 minutes
 	If it is true, more information will be output to the console.
 	The variable does not affect the output of errors. Errors will be displayed no matter what this variable is.
 */
-const DEBUG = true;
+const DEBUG = false;
 
 /*
 	Represents the two clients in the communication.
@@ -108,7 +108,9 @@ server.listen(port, () => console.log(`Server listening on port ${port}`));
 // verity that the token is valid
 // (used by the second client when they receive a url with a token)
 app.post("/verify_token", (req, res) => {
-	console.log(req.body);
+	if (DEBUG) {
+		console.log(req.body);
+	}
 	let token = req.body.token;
 
 	// if the token is not a key in the object tokens or there are already 2 connected clients
@@ -143,13 +145,17 @@ app.get("/generate_token", (req, res) => {
 
 		// if the token already exists in the tokens object
 		while (token in tokens) {
-			console.log("\ngenerated token already exists in the tokens object:", token);
-			console.log("...generating a new token...");
+			if (DEBUG) {
+				console.log("\ngenerated token already exists in the tokens object:", token);
+				console.log("...generating a new token...");
+			}
 
 			// generate a new token, because a collision has occured
 			token = crypto.randomBytes(24).toString("hex");
 
-			console.log("new token:", token, "\n");
+			if (DEBUG) {
+				console.log("new token:", token, "\n");
+			}
 		}
 
 		tokens[token] = new ClientPair();
@@ -169,7 +175,9 @@ io.on("connection", (socket) => {
 	socket.on("clientConnected", (data) => {
 		// get the token and the public key of the client
 		let token = data.token;
-		console.log(token)
+		if (DEBUG) {
+			console.log(token);
+		}
 		let publicKey = data.publicKey;
 
 		// if the token is not in the tokens object, it is not valid, so send "invalidToken" message
@@ -187,17 +195,19 @@ io.on("connection", (socket) => {
 				clientPair.secret = secret;
 				clientPair.plainTextSecret = plainTextSecret;
 
-				console.log(publicKey);
+				if (DEBUG) {
+					console.log(publicKey);
 
-				// ================================================================================================================================
-				// just testing if the verification of the signed secret works (the secret was signed with the client's private key and
-				// can be verified by the public key)
-				var md = forge.md.sha1.create();
-				md.update(plainTextSecret, 'utf8');
+					// ================================================================================================================================
+					// just testing if the verification of the signed secret works (the secret was signed with the client's private key and
+					// can be verified by the public key)
+					var md = forge.md.sha1.create();
+					md.update(plainTextSecret, 'utf8');
 
-				console.log("is the secret signed with the public key:", forge.pki.publicKeyFromPem(publicKey).verify(md.digest().bytes(), secret));
+					console.log("is the secret signed with the public key:", forge.pki.publicKeyFromPem(publicKey).verify(md.digest().bytes(), secret));
 
-				// =================================================================================================================================
+					// =================================================================================================================================
+				}
 
 				// create a new client object and keep track of it in the clientPair
 				clientPair.client1 = new Client(publicKey, socket);
@@ -266,7 +276,9 @@ io.on("connection", (socket) => {
 				iv: data.iv
 			},
 			clientPair);
-			console.log("first half sent!");
+			if (DEBUG) {
+				console.log("first half sent!");
+			}
 		}
 		else {
 			console.error("clientPair or client 2 was undefined:", clientPair);
@@ -354,7 +366,10 @@ io.on("connection", (socket) => {
 		var message = data.message;
 
 		if (!message) {
-			console.log("The client sent a forged data object:", "It does not have a message field");
+			if (DEBUG) {
+				console.log("The client sent a forged data object:", "It does not have a message field");
+			}
+			return;
 		}
 
 		// get the buffers that are used to store messages while users are offline
@@ -393,11 +408,14 @@ io.on("connection", (socket) => {
 			}
 			// wrong socket id !
 			else {
-				console.log("WRONG SOCKET ID!");
-				console.log("socket id:", socket.id);
-				console.log("is 1 connected:", clientPair.client1.socket.connected);
-				console.log("is 2 connected:", clientPair.client2.socket.connected);
-				/* handle socket changes
+				if (DEBUG) {
+					console.log("WRONG SOCKET ID!");
+					console.log("socket id:", socket.id);
+					console.log("is 1 connected:", clientPair.client1.socket.connected);
+					console.log("is 2 connected:", clientPair.client2.socket.connected);
+				}
+				/*
+					handle socket changes
 					when users exit the browser, or their network connection is reset,
 					their sockets naturally close and a new one is opened
 					(implemented entirely by socket.io);
@@ -425,7 +443,7 @@ io.on("connection", (socket) => {
 			}
 		}
 		else {
-			console.log("socket was not set correctly:", clientPair.client1.socket, clientPair.client2.socket);
+			console.error("Socket was not set correctly:", clientPair.client1.socket, clientPair.client2.socket);
 		}
 	});
 });
@@ -530,7 +548,9 @@ function garbageCollect() {
 			tokens[token] = null;
 			delete tokens[token];
 
-			console.log("\n[GARBAGE COLLECTED]: Connection with token", token, "\nWas active for:", new Date(now - lastUsed).toISOString().slice(11, -1), "\nTokens list:", tokens);
+			if (DEBUG) {
+				console.log("\n[GARBAGE COLLECTED]: Connection with token", token, "\nWas active for:", new Date(now - lastUsed).toISOString().slice(11, -1), "\nTokens list:", tokens);
+			}
 		}
 	}
 }

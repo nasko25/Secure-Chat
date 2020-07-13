@@ -31,18 +31,21 @@ export default class InitilizeConnection extends React.Component {
     this.getToken()
       .then(res => {
         let newToken = res;
-        this.props.history.push({
-          pathname: '/',
-          search: `?token=${newToken}`,
-          // state: {token: "do i need a state?"}
-        });
+
+        // wait for 1 second before setting the token in the url
+        setTimeout( () => {
+          this.props.history.push({
+            pathname: '/',
+            search: `?token=${newToken}`,
+            // state: {token: "do i need a state?"}
+          });
+        }, 1000);
 
         // get the socket provided by the parent component
         var socket = this.props.socket;
 
         // get the token and the secret
-        const query = new URLSearchParams(this.props.location.search);
-        const token = query.get("token");
+        const token = newToken;
         const secret = document.getElementById("secret").value;
 
         // set up a message digest to be used to sign the secret with the client's private key

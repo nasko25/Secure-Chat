@@ -68,7 +68,13 @@ export default class ComposeView extends React.Component {
       // auto scroll when a new message is added to the view
       setTimeout(function() {
         var scrollView = document.getElementById("messagesView");
-        scrollView.scrollTop = scrollView.scrollHeight;
+        // scrollView should be defined
+        if (scrollView) {
+          scrollView.scrollTop = scrollView.scrollHeight;
+        }
+        else {
+          console.error("scrollView was undefined");
+        }
       }, 100);
     }
   }
