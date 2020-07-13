@@ -85,8 +85,6 @@ function ClientPair(client1, client2, secret) {
 	this.lastBuffered = null;
 }
 
-// TODO null checks
-
 // TODO if a client gives a token that does not exist, close the socket (and maybe the other socket connected to it too?):
 // TODO production: https://create-react-app.dev/docs/deployment/
 /* TODO reliable message delivery and buffer messages on the client ?
