@@ -232,10 +232,6 @@ io.on("connection", (socket) => {
 				clientPair);
 			} else {
 				// There is already a connection between two parties established or the token is just not valid
-				/* TODO might expand the functionallity so that more parties can join
-					Then I will need to figure out how to send them the already established AES key
-					(they can probably obtain it from one of the other clients)
-				*/
 				socket.emit("invalidToken");
 			}
 		}
@@ -362,7 +358,8 @@ io.on("connection", (socket) => {
 			return;
 		}
 
-		var message = data.message;
+		var messageRecieved = data.message;
+		var message = {};
 
 		if (!message) {
 			if (DEBUG) {
@@ -375,17 +372,33 @@ io.on("connection", (socket) => {
 		var client1Buffer = clientPair.client1.buffer;
 		var client2Buffer = clientPair.client2.buffer;
 
+
+		// create a new message object with the expected fields from the messageReceived object
+		// in this way, no extra information is sent to the client
+
 		// set the "mine" property of the message to false, indicating that the other client sent the message
 		//console.log(message)
 		message.mine = false;
 
-		// TODO i could also implement something checking the validity of message.time?
-		/* TODO
-			check if the message has a valid structure
-			OR better yet create a new message object
-			with the approprite/expected fields from the message object
-			(after validating them). token should be valid!
-		*/
+		// set the actual message if it is of a valid type
+		if (typeof messageRecieved.message === 'string' || messageRecieved.message instanceof String) {
+			message.message = messageRecieved.message;
+		}
+		// otherwise the other client sent an invalid message
+		else {
+			// TODO send to the client that sent this message that it is of invalid type
+			message.message = "";
+		}
+
+		// set the time to what was sent
+		if (messageRecieved.time && (typeof messageRecieved.time === 'string' || messageRecieved.time instanceof String)) {
+			message.time = messageRecieved.time;
+		}
+		// if the date is not valid, set it to the UTC date now
+		else {
+			var date = new Date();
+			message.time = date.toUTCString();
+		}
 
 		// the clients must have their sockets set
 		if (clientPair.client1.socket && clientPair.client2.socket) {
