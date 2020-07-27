@@ -32,3 +32,6 @@ This secret could also be empty, so the user decides if it is really needed.
     
 When the secret is chosen, the browser will sign the secret with a generated RSA private key, and will send the public key of the client, together with the signed secret to the server.
 This is important, because in this way the other client can be sure that the public key is also authentic.
+    
+After the second client accepts the secret (or lack thereof) a connection is established and the public key of the second client is sent to the server and the server will pass the key to the initiator client.
+    Then after the initiator client receives the information of the second client, the two clients can choose a secret that will be used to encrypt all messages between the two parties. It is important to note that the server does not have access to the secret, because the two clients both generate 16 random secret bytes that will together be used as the shared secret.
