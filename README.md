@@ -25,6 +25,14 @@ cd client
 npm start 
 ```
 
+#### To build the client for production:
+``` bash
+cd client
+npm run build
+serve -s build -l 3210
+```
+
+
 ## How does it work?
 TODO
 When a user opens the page to create a new connection, they can input a secret. This secret is meant to prove that the user is who they say they are, because a link will be shared through a somewhat untrusted medium. It will not function as a "password" type of shared secret, because it will be shared in plain text, but it should be used to somehow identify the initiator of the connection. It could even be a sentence or even a paragraph. It would be best if the secret is decided through a safe medium, but if absolutely necessary, it could be a previously shared secret that both parties can recognize.
