@@ -5,10 +5,12 @@ const app = express();
 const server = require('http').Server(app);
 const io = require("socket.io")(server, {
 	pingTimeout: 1000,	// 1 second without response means that the socket is disconnected
-	pingInterval: 1000	// ping the clients every 1 second
+	pingInterval: 1000,	// ping the clients every 1 second
+	path: "/socket" // use /socket for the socket.io requests
 });
 
-const port = process.env.PORT || 9000;
+const port = process.env.PORT || 3210;      // 3210 was the client port (the server port was 9000 originally), but after deployment, the client will be statically served, so this server will
+// need to serve the static client build files
 const bodyParser = require("body-parser");
 
 const forge = require("node-forge");
@@ -98,6 +100,9 @@ function ClientPair(client1, client2, secret) {
 let tokens = {};
 
 app.use(bodyParser.json());
+// this is needed for production, because when the React client app is built (with `npm run build`),
+// the build files are located in /client/build and need to be served by this server
+app.use("/", express.static(__dirname + "/client/build"));
 
 // serve the browserified prime.worker.js when a request is made by the client for that file
 app.use("/forge/prime.worker.js", express.static(__dirname + "/prime.worker.js"));
