@@ -581,7 +581,7 @@ app.use("/static", express.static(__dirname + "/client/build/static")); // the s
 app.get("*", (req, res) => {
     // if it is not a defined url (defined in the React client App.js) return 404
     //  (and the React Router will redirect to the /not_found page)
-    if (!["/", "/chat", "/invalid_token", "/connection_closed", "/connection_interrupted", "/not_found"].includes(req.url))
+    if (!["/", "/chat", "/invalid_token", "/connection_closed", "/connection_interrupted", "/not_found"].includes(req.path))
         res.status(404);
     res.sendFile("index.html", { root: __dirname + "/client/build" });
 });
