@@ -100,9 +100,6 @@ function ClientPair(client1, client2, secret) {
 let tokens = {};
 
 app.use(bodyParser.json());
-// this is needed for production, because when the React client app is built (with `npm run build`),
-// the build files are located in /client/build and need to be served by this server
-app.use("/", express.static(__dirname + "/client/build"));
 
 // serve the browserified prime.worker.js when a request is made by the client for that file
 app.use("/forge/prime.worker.js", express.static(__dirname + "/prime.worker.js"));
@@ -576,3 +573,15 @@ setInterval(
 	garbageCollect,
 	10 * 1000		// every 10 seconds
 );
+
+// this is needed for production, because when the React client app is built (with `npm run build`),
+// the build files are located in /client/build and need to be served by this server
+app.use("/static", express.static(__dirname + "/client/build/static")); // the static files need to be served from /client/build/static
+// anything else will open index.html
+app.get("*", (req, res) => {
+    // if it is not a defined url (defined in the React client App.js) return 404
+    //  (and the React Router will redirect to the /not_found page)
+    if (!["/", "/chat", "/invalid_token", "/connection_closed", "/connection_interrupted", "/not_found"].includes(req.url))
+        res.status(404);
+    res.sendFile("index.html", { root: __dirname + "/client/build" });
+});
