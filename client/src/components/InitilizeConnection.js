@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import './index.css';
 import forge from "node-forge";
-import crypto from 'crypto';
+import crypto from 'crypto-browserify';
 
 export default class InitilizeConnection extends React.Component {
   state = {
@@ -135,7 +135,7 @@ export default class InitilizeConnection extends React.Component {
   }
 
   // if this is the second client
-  // this is called whenever the second client loads this page (happens when a valid token is passed as a 
+  // this is called whenever the second client loads this page (happens when a valid token is passed as a
   // query parameter)
   secondClientConnect = () => {
 
