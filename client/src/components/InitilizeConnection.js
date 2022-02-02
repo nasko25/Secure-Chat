@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import './index.css';
 import forge from "node-forge";
-import crypto from 'crypto-browserify';
 
 export default class InitilizeConnection extends React.Component {
   state = {
@@ -78,10 +77,11 @@ export default class InitilizeConnection extends React.Component {
 
           // TODO make it a promise and cancel it on componentWillUnmount ? (can it lead to a memory leak?)
           // generate the first part of the encryption key
-          crypto.randomBytes(16, (err, buffer) => {
+          forge.random.getBytes(16, (err, buffer) => {
             if (err) {
               console.log(err);
             }
+              console.log(buffer)
 
             // TODO ? forge can generate a 'password' based key:
             /* alternatively, generate a password-based 16-byte key
@@ -196,7 +196,7 @@ export default class InitilizeConnection extends React.Component {
 
     // TODO make it a promise and cancel it on componentWillUnmount ? (can it lead to a memory leak?)
     // generate a random encryption key
-    crypto.randomBytes(16, (err, buffer) => {
+    forge.random.getBytes(16, (err, buffer) => {
       if (err) {
         console.log(err);
       }

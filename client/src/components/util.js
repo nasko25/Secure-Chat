@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+
 export function toBase64(data) {
 	let buff = new Buffer(data);
 
