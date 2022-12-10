@@ -17,12 +17,12 @@ npm run startAll
 ```
 to run both the server and react client scripts at the same time, or run
 ``` bash 
-npm start 
+PORT=9000 npm start
 ```
 in the home directory to start the server and then on a different terminal run 
 ``` bash
 cd client
-npm start 
+npm start
 ```
 
 #### To build the client for production:
